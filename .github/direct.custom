@@ -1,0 +1,13 @@
+rule:DOMAIN-KEYWORD,-mihayo.akamaized.net
+rule:DOMAIN-KEYWORD,ap-beijing
+rule:DOMAIN-KEYWORD,ap-chengdu
+rule:DOMAIN-KEYWORD,ap-chongqing
+rule:DOMAIN-KEYWORD,ap-guangzhou
+rule:DOMAIN-KEYWORD,ap-nanjing
+rule:DOMAIN-KEYWORD,ap-shanghai
+rule:DOMAIN-KEYWORD,ap-shenzhen
+rule:DOMAIN-KEYWORD,awsdns-cn-
+rule:DOMAIN-KEYWORD,zh.okaapps.com
+rule:DOMAIN-WILDCARD,epicgames*.file.myqcloud.com
+rule:DOMAIN-WILDCARD,gog-cdn-*.footprint.net
+rule:DOMAIN-WILDCARD,images*.gog-statics.com
