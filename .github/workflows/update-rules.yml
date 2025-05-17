@@ -123,14 +123,24 @@ jobs:
             if [ -f "$custom_file" ]; then
               > "$tmp_file"
 
-              cat "$custom_file" | while IFS= read -r line || [[ -n $line ]]; do
+              while IFS= read -r line || [[ -n $line ]]; do
                 case "$line" in
-                  domain:*) echo "${line#domain:}" >> "$target_file" ;;
-                  rule:*) echo "${line#rule:}" >> "$tmp_file" ;;
-                  -domain:*) sed -i "/${line#-domain:}/d" "$target_file" ;;
-                  -rule:*) sed -i "/${line#-rule:}/d" "$tmp_file" ;;
+                  domain:*)
+                    echo "${line#domain:}" >> "$target_file"
+                    ;;
+                  rule:*)
+                    echo "${line#rule:}" >> "$tmp_file"
+                    ;;
+                  -domain:*)
+                    pattern="${line#-domain:}"
+                    grep -F -v "$pattern" "$target_file" > "${target_file}.tmp" && mv "${target_file}.tmp" "$target_file"
+                    ;;
+                  -rule:*)
+                    pattern="${line#-rule:}"
+                    grep -F -v "$pattern" "$tmp_file" > "${tmp_file}.tmp" && mv "${tmp_file}.tmp" "$tmp_file"
+                    ;;
                 esac
-              done
+              done < "$custom_file"
 
               if [ -s "$tmp_file" ]; then
                 mv "$tmp_file" "$rule_file"
