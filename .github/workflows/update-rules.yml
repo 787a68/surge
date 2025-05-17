@@ -123,7 +123,7 @@ jobs:
             if [ -f "$custom_file" ]; then
               > "$tmp_file"
 
-              cat "$custom_file" | while IFS= read -r line || [ -n "$line" ]; do
+              cat "$custom_file" | while IFS= read -r line || [[ -n $line ]]; do
                 case "$line" in
                   domain:*) echo "${line#domain:}" >> "$target_file" ;;
                   rule:*) echo "${line#rule:}" >> "$tmp_file" ;;
