@@ -105,7 +105,7 @@ jobs:
           echo "$step proxy.domain $(stat -c '%s' proxy.domain) bytes"
 
           step="Proxy Rules: gfw_ip_list.txt"
-          curl --retry 3 --retry-delay 2 --connect-timeout 10 --max-time 60 -sSL "https://raw.githubusercontent.com/pmkol/easymosdns/rules/gfw_ip_list.txt" \
+          curl --retry 3 --retry-delay 2 --connect-timeout 10 --max-time 60 -sSL "https://core.telegram.org/resources/cidr.txt" \
             | grep -v '^#' | sed '/^$/d' | \
             awk '{if ($1 ~ ":") print "IP-CIDR6," $1 ",no-resolve"; else print "IP-CIDR," $1 ",no-resolve"}' > proxy.rule
           echo "$step proxy.rule $(stat -c '%s' proxy.rule) bytes"
