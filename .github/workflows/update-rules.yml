@@ -125,21 +125,21 @@ jobs:
 
               cat "$custom_file" | while IFS= read -r line || [ -n "$line" ]; do
                 case "$line" in
-        domain:*) echo "${line#domain:}" >> "$target_file" ;;
-                rule:*) echo "${line#rule:}" >> "$tmp_file" ;;
-                -domain:*) sed -i "/${line#-domain:}/d" "$target_file" ;;
-                -rule:*) sed -i "/${line#-rule:}/d" "$tmp_file" ;;
-              esac
-            done
+                  domain:*) echo "${line#domain:}" >> "$target_file" ;;
+                  rule:*) echo "${line#rule:}" >> "$tmp_file" ;;
+                  -domain:*) sed -i "/${line#-domain:}/d" "$target_file" ;;
+                  -rule:*) sed -i "/${line#-rule:}/d" "$tmp_file" ;;
+                esac
+              done
 
-            if [ -s "$tmp_file" ]; then
-              mv "$tmp_file" "$rule_file"
-            else
-              rm -f "$tmp_file"
-            fi
+              if [ -s "$tmp_file" ]; then
+                mv "$tmp_file" "$rule_file"
+              else
+                rm -f "$tmp_file"
+              fi
 
-            echo "Custom Rule $target_file $(stat -c '%s' "$target_file") bytes"
-            echo "Custom Rule $rule_file $(stat -c '%s' "$rule_file") bytes"
+              echo "Custom Rule $target_file $(stat -c '%s' "$target_file") bytes"
+              echo "Custom Rule $rule_file $(stat -c '%s' "$rule_file") bytes"
             fi
           }
           for file in *.domain; do
