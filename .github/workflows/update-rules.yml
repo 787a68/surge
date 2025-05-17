@@ -118,23 +118,28 @@ jobs:
             local target_file=$1
             local custom_file=".github/$(basename "$target_file" .domain).custom"
             local rule_file="$(basename "$target_file" .domain).rule"
-
-            if [ -f "$custom_file" ] && grep -q '^rule:' "$custom_file" && [ ! -f "$rule_file" ]; then
-              touch "$rule_file"
-            fi
+            local tmp_file="${rule_file}.tmp"
 
             if [ -f "$custom_file" ]; then
-              > "$rule_file"
+              > "$tmp_file"
+
               cat "$custom_file" | while IFS= read -r line || [ -n "$line" ]; do
                 case "$line" in
-                  domain:*) echo "${line#domain:}" >> "$target_file" ;;
-                  rule:*) echo "${line#rule:}" >> "$rule_file" ;;
-                  -domain:*) sed -i "/${line#-domain:}/d" "$target_file" ;;
-                  -rule:*) sed -i "/${line#-rule:}/d" "$rule_file" ;;
-                esac
-              done
-              echo "Custom Rule $target_file $(stat -c '%s' "$target_file") bytes"
-              echo "Custom Rule $rule_file $(stat -c '%s' "$rule_file") bytes"
+        domain:*) echo "${line#domain:}" >> "$target_file" ;;
+                rule:*) echo "${line#rule:}" >> "$tmp_file" ;;
+                -domain:*) sed -i "/${line#-domain:}/d" "$target_file" ;;
+                -rule:*) sed -i "/${line#-rule:}/d" "$tmp_file" ;;
+              esac
+            done
+
+            if [ -s "$tmp_file" ]; then
+              mv "$tmp_file" "$rule_file"
+            else
+              rm -f "$tmp_file"
+            fi
+
+            echo "Custom Rule $target_file $(stat -c '%s' "$target_file") bytes"
+            echo "Custom Rule $rule_file $(stat -c '%s' "$rule_file") bytes"
             fi
           }
           for file in *.domain; do
