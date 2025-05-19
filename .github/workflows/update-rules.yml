@@ -34,7 +34,7 @@ jobs:
         run: |
           set -eo pipefail
           step="Reject Rules: 1Hosts wildcards"
-          curl --retry 3 --retry-delay 2 --connect-timeout 10 --max-time 60 -sSL "https://raw.githubusercontent.com/badmojr/1Hosts/master/Lite/domains.wildcards" \
+          curl --retry 3 --retry-delay 2 --connect-timeout 10 --max-time 60 -sSL "https://raw.githubusercontent.com/badmojr/1Hosts/master/Pro/domains.wildcards" \
             | grep -v '^#' | sed '/^$/d' | sed 's/^/./' > reject.domain
           echo "$step reject.domain $(stat -c '%s' reject.domain) bytes"
 
