@@ -1,5 +1,7 @@
 rule:DOMAIN-KEYWORD,-ad.
 rule:DOMAIN-KEYWORD,.ad-
+rule:DOMAIN-KEYWORD,.ad.
+rule:DOMAIN-KEYWORD,.ads.
 rule:DOMAIN-KEYWORD,adsdk
 rule:DOMAIN-KEYWORD,adserv
 rule:DOMAIN-KEYWORD,advert
