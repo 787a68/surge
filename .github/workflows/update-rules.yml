@@ -57,36 +57,6 @@ jobs:
           LC_ALL=C sort -u -o reject.domain reject.domain
           echo "$step reject.domain $(stat -c '%s' reject.domain) bytes"
 
-          awk '
-            {
-              domain = $0
-              for (i = 1; i <= length(domain); i++) {
-                if (substr(domain, i, 1) == ".") {
-                  suffix = substr(domain, i)
-                  if (suffix in seen) next
-                }
-              }
-              seen[domain] = 1
-              print domain
-            }
-          ' reject.domain > reject.domain.new && mv reject.domain.new reject.domain
-          echo "Suffix dedup reject.domain $(stat -c '%s' reject.domain) bytes"
-
-          step="Reject Rules: group and upgrade main domains"
-          awk -F. '
-            NF>=4 && $1=="" {
-              main=substr($0, index($0,$3))
-              count[main]++; lines[main]=lines[main] $0 "\n"
-            }
-            END {
-              for (m in count) if(count[m]>=10) print m
-            }
-          ' reject.domain | while read main; do
-            sed -i "/^\.[^.]\+\.$main$/d" reject.domain
-            grep -qxF ".${main}" reject.domain || echo ".${main}" >> reject.domain
-          done
-          echo "$step reject.domain $(stat -c '%s' reject.domain) bytes"
-
       - name: Update Direct Rules
         run: |
           set -eo pipefail
