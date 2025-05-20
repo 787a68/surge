@@ -79,7 +79,7 @@ jobs:
               count[main]++; lines[main]=lines[main] $0 "\n"
             }
             END {
-              for (m in count) if(count[m]>=5) print m
+              for (m in count) if(count[m]>=10) print m
             }
           ' reject.domain | while read main; do
             sed -i "/^\.[^.]\+\.$main$/d" reject.domain
