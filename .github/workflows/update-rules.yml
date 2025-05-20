@@ -72,6 +72,21 @@ jobs:
           ' reject.domain > reject.domain.new && mv reject.domain.new reject.domain
           echo "Suffix dedup reject.domain $(stat -c '%s' reject.domain) bytes"
 
+          step="Reject Rules: group and upgrade main domains"
+          awk -F. '
+            NF>=4 && $1=="" {
+              main=substr($0, index($0,$3))
+              count[main]++; lines[main]=lines[main] $0 "\n"
+            }
+            END {
+              for (m in count) if(count[m]>=10) print m
+            }
+          ' reject.domain | while read main; do
+            sed -i "/^\.[^.]\+\.$main$/d" reject.domain
+            grep -qxF ".${main}" reject.domain || echo ".${main}" >> reject.domain
+          done
+          echo "$step reject.domain $(stat -c '%s' reject.domain) bytes"
+
       - name: Update Direct Rules
         run: |
           set -eo pipefail
@@ -180,6 +195,9 @@ jobs:
             domain_file="$(basename "$rule_file" .rule).domain"
             [ ! -f "$domain_file" ] && continue
 
+            cp "$domain_file" "${domain_file}.bak"
+            sed -i 's/^\.//' "$domain_file"
+
             awk -F, '/^DOMAIN-KEYWORD,/{print $2}' "$rule_file" | awk 'NF' | while read -r keyword; do
               sed -i "/$keyword/d" "$domain_file"
             done
@@ -190,6 +208,10 @@ jobs:
               sed -i "/$pattern/d" "$domain_file"
             done
             echo "Rule Filtering $domain_file after DOMAIN-WILDCARD $(stat -c '%s' "$domain_file") bytes"
+
+            awk 'NR==FNR{if($0 ~ /^\./) a[NR]=1; next} {if(a[FNR]) print "."$0; else print $0}' "${domain_file}.bak" "$domain_file" > "${domain_file}.new"
+            mv "${domain_file}.new" "$domain_file"
+            rm -f "${domain_file}.bak"
           done
           shopt -u nullglob
 
