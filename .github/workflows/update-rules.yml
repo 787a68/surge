@@ -69,6 +69,27 @@ jobs:
           LC_ALL=C sort -u -o direct.domain direct.domain
           echo "$step direct.domain $(stat -c '%s' direct.domain) bytes"
 
+          rev reject.domain | sort | \
+          awk '
+            {
+              domain = $0
+              n = split(domain, arr, "")
+              keep = 1
+              for (i = 2; i <= n; i++) {
+                parent = substr(domain, 1, i-1)
+                if (seen[parent]) {
+                  keep = 0
+                  break
+                }
+              }
+              if (keep) seen[domain]=1
+            }
+            END {
+              for (d in seen) print d
+            }
+          ' | rev > reject.domain.tmp && mv reject.domain.tmp reject.domain
+          echo "Suffix dedup reject.domain $(stat -c '%s' reject.domain) bytes"
+
       - name: Update Proxy Rules
         run: |
           set -eo pipefail
