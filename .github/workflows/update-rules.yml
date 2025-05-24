@@ -21,201 +21,47 @@ jobs:
       - name: Switch Branch & Get Custom Files
         run: |
           set -eo pipefail
-          git fetch origin
-          if git branch -r | grep 'origin/rule'; then
-            git checkout rule
-          else
-            git checkout --orphan rule
-          fi
-          git fetch origin main
-          git checkout main -- .github/
+          git fetch origin; if git branch -r | grep 'origin/rule'; then git checkout rule; else git checkout --orphan rule; fi
+          git fetch origin main; git checkout main -- .github/
 
       - name: Update Reject Rules
         run: |
           set -eo pipefail
-          step="Reject Rules: 1Hosts wildcards"
-          curl --retry 3 --retry-delay 2 --connect-timeout 10 --max-time 60 -sSL "https://raw.githubusercontent.com/badmojr/1Hosts/master/Pro/domains.wildcards" \
-            | grep -v '^#' | sed '/^$/d' | sed 's/^/./' > reject.domain
-          echo "$step reject.domain $(stat -c '%s' reject.domain) bytes"
-
-          step="Reject Rules: AdRules domains"
-          curl --retry 3 --retry-delay 2 --connect-timeout 10 --max-time 60 -sSL "https://raw.githubusercontent.com/Cats-Team/AdRules/main/adrules_domainset.txt" \
-            | grep -v '^#' | sed '/^$/d' | sed 's/^+//' >> reject.domain
-          echo "$step reject.domain $(stat -c '%s' reject.domain) bytes"
-
-          step="Reject Rules: AWAvenue-Ads-Rule"
-          curl --retry 3 --retry-delay 2 --connect-timeout 10 --max-time 60 -sSL "https://raw.githubusercontent.com/TG-Twilight/AWAvenue-Ads-Rule/main/Filters/AWAvenue-Ads-Rule-Surge.list" \
-            | grep -v '^#' | sed '/^$/d' >> reject.domain
-          echo "$step reject.domain $(stat -c '%s' reject.domain) bytes"
-
-          step="Reject Rules: anti-AD surge2"
-          curl --retry 3 --retry-delay 2 --connect-timeout 10 --max-time 60 -sSL "https://raw.githubusercontent.com/privacy-protection-tools/anti-AD/master/anti-ad-surge2.txt" \
-            | grep -v '^#' | sed '/^$/d' >> reject.domain
-          echo "$step reject.domain $(stat -c '%s' reject.domain) bytes"
-
-          step="Reject Rules: sort"
-          LC_ALL=C sort -u -o reject.domain reject.domain
-          echo "$step reject.domain $(stat -c '%s' reject.domain) bytes"
+          step="Reject Rules: 1Hosts wildcards"; curl --retry 3 --retry-delay 2 --connect-timeout 10 --max-time 60 -sSL "https://raw.githubusercontent.com/badmojr/1Hosts/master/Pro/domains.wildcards" | grep -v '^#' | sed '/^$/d' | sed 's/^/./' > reject.domain; echo "$step reject.domain $(stat -c '%s' reject.domain) bytes"
+          step="Reject Rules: AdRules domains"; curl --retry 3 --retry-delay 2 --connect-timeout 10 --max-time 60 -sSL "https://raw.githubusercontent.com/Cats-Team/AdRules/main/adrules_domainset.txt" | grep -v '^#' | sed '/^$/d' | sed 's/^+//' >> reject.domain; echo "$step reject.domain $(stat -c '%s' reject.domain) bytes"
+          step="Reject Rules: AWAvenue-Ads-Rule"; curl --retry 3 --retry-delay 2 --connect-timeout 10 --max-time 60 -sSL "https://raw.githubusercontent.com/TG-Twilight/AWAvenue-Ads-Rule/main/Filters/AWAvenue-Ads-Rule-Surge.list" | grep -v '^#' | sed '/^$/d' >> reject.domain; echo "$step reject.domain $(stat -c '%s' reject.domain) bytes"
+          step="Reject Rules: anti-AD surge2"; curl --retry 3 --retry-delay 2 --connect-timeout 10 --max-time 60 -sSL "https://raw.githubusercontent.com/privacy-protection-tools/anti-AD/master/anti-ad-surge2.txt" | grep -v '^#' | sed '/^$/d' >> reject.domain; echo "$step reject.domain $(stat -c '%s' reject.domain) bytes"
+          step="Reject Rules: sort"; LC_ALL=C sort -u -o reject.domain reject.domain; echo "$step reject.domain $(stat -c '%s' reject.domain) bytes"
 
       - name: Update Direct Rules
         run: |
           set -eo pipefail
-          step="Direct Rules: cdn_domain_list.txt download"
-          curl --retry 3 --retry-delay 2 --connect-timeout 10 --max-time 60 -sSL "https://raw.githubusercontent.com/pmkol/easymosdns/rules/cdn_domain_list.txt" \
-            | grep -v '^#' | sed '/^$/d' | grep '^full:' | sed 's/full://' > direct.domain
-          echo "$step direct.domain $(stat -c '%s' direct.domain) bytes"
-
-          step="Direct Rules: sort"
-          LC_ALL=C sort -u -o direct.domain direct.domain
-          echo "$step direct.domain $(stat -c '%s' direct.domain) bytes"
+          step="Direct Rules: cdn_domain_list.txt download"; curl --retry 3 --retry-delay 2 --connect-timeout 10 --max-time 60 -sSL "https://raw.githubusercontent.com/pmkol/easymosdns/rules/cdn_domain_list.txt" | grep -v '^#' | sed '/^$/d' | grep '^full:' | sed 's/full://' > direct.domain; echo "$step direct.domain $(stat -c '%s' direct.domain) bytes"
+          step="Direct Rules: sort"; LC_ALL=C sort -u -o direct.domain direct.domain; echo "$step direct.domain $(stat -c '%s' direct.domain) bytes"
 
       - name: Update Proxy Rules
         run: |
           set -eo pipefail
-          step="Proxy Rules: gfw_domain_list.txt"
-          curl --retry 3 --retry-delay 2 --connect-timeout 10 --max-time 60 -sSL "https://raw.githubusercontent.com/pmkol/easymosdns/rules/gfw_domain_list.txt" \
-            | grep -v '^#' | sed '/^$/d' > proxy.domain
-          echo "$step proxy.domain $(stat -c '%s' proxy.domain) bytes"
+          step="Proxy Rules: gfw_domain_list.txt"; curl --retry 3 --retry-delay 2 --connect-timeout 10 --max-time 60 -sSL "https://raw.githubusercontent.com/pmkol/easymosdns/rules/gfw_domain_list.txt" | grep -v '^#' | sed '/^$/d' > proxy.domain; echo "$step proxy.domain $(stat -c '%s' proxy.domain) bytes"
+          step="Proxy Rules: sort proxy.domain"; LC_ALL=C sort -u -o proxy.domain proxy.domain; echo "$step proxy.domain $(stat -c '%s' proxy.domain) bytes"
 
-          step="Proxy Rules: apple.txt"
-          curl --retry 3 --retry-delay 2 --connect-timeout 10 --max-time 60 -sSL "https://raw.githubusercontent.com/Loyalsoldier/surge-rules/release/apple.txt" \
-            | grep -v '^#' | sed '/^$/d' | sed 's/^\.//' > remove.list
-          echo "$step remove.list $(stat -c '%s' remove.list) bytes"
-
-          step="Proxy Rules: icloud.txt"
-          curl --retry 3 --retry-delay 2 --connect-timeout 10 --max-time 60 -sSL "https://raw.githubusercontent.com/Loyalsoldier/surge-rules/release/icloud.txt" \
-            | grep -v '^#' | sed '/^$/d' | sed 's/^\.//' >> remove.list
-          echo "$step remove.list $(stat -c '%s' remove.list) bytes"
-
-          step="Proxy Rules: sort remove.list"
-          LC_ALL=C sort -u -o remove.list remove.list
-          echo "$step remove.list $(stat -c '%s' remove.list) bytes"
-
-          step="Proxy Rules: filter proxy.domain"
-          grep -Fvxf remove.list proxy.domain > proxy.tmp
-          mv proxy.tmp proxy.domain
-          echo "$step proxy.domain $(stat -c '%s' proxy.domain) bytes"
-
-          step="Proxy Rules: add dot to proxy.domain"
-          sed -i 's/^/./' proxy.domain
-          echo "$step proxy.domain $(stat -c '%s' proxy.domain) bytes"
-
-          step="Proxy Rules: sort proxy.domain"
-          LC_ALL=C sort -u -o proxy.domain proxy.domain
-          echo "$step proxy.domain $(stat -c '%s' proxy.domain) bytes"
-
-          step="Proxy Rules: gfw_ip_list.txt"
-          curl --retry 3 --retry-delay 2 --connect-timeout 10 --max-time 60 -sSL "https://core.telegram.org/resources/cidr.txt" \
-            | grep -v '^#' | sed '/^$/d' | \
-            awk '{if ($1 ~ ":") print "IP-CIDR6," $1 ",no-resolve"; else print "IP-CIDR," $1 ",no-resolve"}' > proxy.rule
-          echo "$step proxy.rule $(stat -c '%s' proxy.rule) bytes"
-
-      - name: Apply Custom Rules
+      - name: Deduplicate and Sort Domain Lists
         run: |
           set -eo pipefail
-          shopt -s nullglob
-          process_custom() {
-            local target_file=$1
-            local custom_file=".github/$(basename "$target_file" .domain).custom"
-            local rule_file="$(basename "$target_file" .domain).rule"
-            local tmp_file="${rule_file}.tmp"
-
-            if [ -f "$custom_file" ]; then
-              > "$tmp_file"
-
-              while IFS= read -r line || [[ -n $line ]]; do
-                case "$line" in
-                  domain:*)
-                    echo "${line#domain:}" >> "$target_file"
-                    ;;
-                  rule:*)
-                    echo "${line#rule:}" >> "$tmp_file"
-                    ;;
-                  -domain:*)
-                    pattern="${line#-domain:}"
-                    grep -F -v "$pattern" "$target_file" > "${target_file}.tmp" && mv "${target_file}.tmp" "$target_file"
-                    ;;
-                  -rule:*)
-                    pattern="${line#-rule:}"
-                    grep -F -v "$pattern" "$tmp_file" > "${tmp_file}.tmp" && mv "${tmp_file}.tmp" "$tmp_file"
-                    ;;
-                esac
-              done < "$custom_file"
-
-              if [ -s "$tmp_file" ]; then
-                mv "$tmp_file" "$rule_file"
-              else
-                rm -f "$tmp_file"
-              fi
-
-              echo "Custom Rule $target_file $(stat -c '%s' "$target_file") bytes"
-              echo "Custom Rule $rule_file $(stat -c '%s' "$rule_file") bytes"
-            fi
-          }
-          for file in *.domain; do
-            process_custom "$file"
-          done
-          shopt -u nullglob
-
-      - name: Apply Rule Filtering
-        run: |
-          set -eo pipefail
-          shopt -s nullglob
-          for rule_file in *.rule; do
-            domain_file="$(basename "$rule_file" .rule).domain"
-            [ ! -f "$domain_file" ] && continue
-
-            cp "$domain_file" "${domain_file}.bak"
-            sed -i 's/^\.//' "$domain_file"
-
-            awk -F, '/^DOMAIN-KEYWORD,/{print $2}' "$rule_file" | awk 'NF' | while read -r keyword; do
-              sed -i "/$keyword/d" "$domain_file"
-            done
-            echo "Rule Filtering $domain_file after DOMAIN-KEYWORD $(stat -c '%s' "$domain_file") bytes"
-
-            awk -F, '/^DOMAIN-WILDCARD,/{print $2}' "$rule_file" | awk 'NF' | while read -r wildcard; do
-              pattern=$(echo "$wildcard" | sed 's/\*/.*/g; s/?/./g')
-              sed -i "/$pattern/d" "$domain_file"
-            done
-            echo "Rule Filtering $domain_file after DOMAIN-WILDCARD $(stat -c '%s' "$domain_file") bytes"
-
-            awk 'NR==FNR{if($0 ~ /^\./) a[NR]=1; next} {if(a[FNR]) print "."$0; else print $0}' "${domain_file}.bak" "$domain_file" > "${domain_file}.new"
-            mv "${domain_file}.new" "$domain_file"
-            rm -f "${domain_file}.bak"
-          done
-          shopt -u nullglob
+          for file in *.domain; do echo "Domain Rules: Pre-processing stats $file $(stat -c '%s' "$file") bytes"; done
+          for file in *.domain; do sort -u "$file" | awk -F'.' '{subdomain = $(NF-1)"."$NF; if (!(subdomain in seen)) { seen[subdomain] = $0; }} END {for (domain in seen) {print seen[domain];}}' > "$file.tmp"; echo "Domain Rules: Deduplicating $file.tmp $(stat -c '%s' "$file.tmp") bytes"; mv "$file.tmp" "$file"; done
+          for file in *.domain; do LC_ALL=C sort -u -o "$file" "$file"; echo "Domain Rules: Final sorting $file $(stat -c '%s' "$file") bytes"; done
 
       - name: Clean Files
         run: |
           set -eo pipefail
-          rm -rf .github
-          git rm -rf --cached .github || true
+          rm -rf .github; git rm -rf --cached .github || true
           rm -f *.txt *.list *.tmp || true
-
-          shopt -s nullglob
-          for file in *.domain *.rule; do
-            sed -i '/^[[:space:]]*$/d' "$file"
-            sed -i '${/^$/d}' "$file"
-            echo -n "$(cat "$file")" > "$file"
-            echo "Clean $file $(stat -c '%s' "$file") bytes"
-          done
-
-          for file in *.domain *.rule; do
-            if [ -f "$file" ] && [ ! -s "$file" ]; then
-              rm -f "$file"
-            fi
-          done
-          shopt -u nullglob
+          for file in *.domain *.rule; do sed -i '/^[[:space:]]*$/d' "$file"; sed -i '${/^$/d}' "$file"; echo -n "$(cat "$file")" > "$file"; echo "Clean $file $(stat -c '%s' "$file") bytes"; done
+          for file in *.domain *.rule; do if [ -f "$file" ] && [ ! -s "$file" ]; then rm -f "$file"; fi; done
 
       - name: Commit & Push
         run: |
           set -eo pipefail
-          git config --global user.email "action@github.com"
-          git config --global user.name "GitHub Action"
-          if [[ $(git status --porcelain) ]]; then
-            git add --ignore-errors -- '*.domain' '*.rule'
-            git commit -m "Rules update $(date)"
-            git push origin rule --force
-          else
-            echo "No changes detected, nothing to commit."
-          fi
+          git config --global user.email "actions@github.com"; git config --global user.name "GitHub Actions"
+          if [[ $(git status --porcelain) ]]; then git add --ignore-errors -- '*.domain' '*.rule'; git commit -m "Rules update $(date)"; git push origin rule --force; else echo "No changes detected, nothing to commit."; fi
