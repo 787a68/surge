@@ -125,7 +125,7 @@ jobs:
           done
           shopt -u nullglob
 
-      - name: Filter and Deduplicate Domains (Reverse Sort Method)
+      - name: Filter and Deduplicate
         run: |
           set -eo pipefail
           shopt -s nullglob
