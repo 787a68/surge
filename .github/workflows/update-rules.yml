@@ -40,6 +40,10 @@ jobs:
           echo "Appended Surge Rule -> reject.domain $(stat -c '%s' reject.domain) bytes"
           curl --retry 3 --retry-delay 2 --connect-timeout 10 --max-time 60 -sSL "https://raw.githubusercontent.com/privacy-protection-tools/anti-AD/master/anti-ad-surge2.txt" | grep -v '^#' | sed '/^$/d' >> reject.domain
           echo "Appended anti-AD -> reject.domain $(stat -c '%s' reject.domain) bytes"
+          curl --retry 3 --retry-delay 2 --connect-timeout 10 --max-time 60 -sSL "https://raw.githubusercontent.com/privacy-protection-tools/anti-AD/master/discretion/pcdn.txt" | grep -v '^#' | sed '/^$/d' >> reject.domain
+          echo "Appended anti-AD pcdn -> reject.domain $(stat -c '%s' reject.domain) bytes"
+          curl --retry 3 --retry-delay 2 --connect-timeout 10 --max-time 60 -sSL "https://raw.githubusercontent.com/pmkol/easymosdns/rules/ad_domain_list.txt" | grep -v '^#' | sed '/^$/d' | sed 's/^\.//' >> reject.domain
+          echo "Appended easymosdns ad -> reject.domain $(stat -c '%s' reject.domain) bytes"
           LC_ALL=C sort -u -o reject.domain reject.domain
           echo "Sorted reject.domain -> $(stat -c '%s' reject.domain) bytes"
 
@@ -47,7 +51,9 @@ jobs:
         run: |
           set -eo pipefail
           curl --retry 3 --retry-delay 2 --connect-timeout 10 --max-time 60 -sSL "https://raw.githubusercontent.com/pmkol/easymosdns/rules/cdn_domain_list.txt" | grep -v '^#' | sed '/^$/d' | grep '^full:' | sed 's/full://' | sed 's/^/./' > direct.domain
-          echo "Downloaded direct domains -> direct.domain $(stat -c '%s' direct.domain) bytes"
+          echo "Downloaded cdn domains -> direct.domain $(stat -c '%s' direct.domain) bytes"
+          curl --retry 3 --retry-delay 2 --connect-timeout 10 --max-time 60 -sSL "https://raw.githubusercontent.com/pmkol/easymosdns/rules/china_domain_list.txt" | grep -v '^#' | sed '/^$/d' | sed 's/^/./' > direct.domain
+          echo "Appended china domains -> direct.domain $(stat -c '%s' direct.domain) bytes"
           LC_ALL=C sort -u -o direct.domain direct.domain
           echo "Sorted direct.domain -> $(stat -c '%s' direct.domain) bytes"
 

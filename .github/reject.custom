@@ -5,6 +5,7 @@ rule:DOMAIN-KEYWORD,.ads.
 rule:DOMAIN-KEYWORD,adsdk
 rule:DOMAIN-KEYWORD,adserv
 rule:DOMAIN-KEYWORD,advert
+rule:DOMAIN-KEYWORD,adx-
 rule:DOMAIN-KEYWORD,analy
 rule:DOMAIN-KEYWORD,banner
 rule:DOMAIN-KEYWORD,marketing
