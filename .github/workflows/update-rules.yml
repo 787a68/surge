@@ -52,8 +52,6 @@ jobs:
           set -eo pipefail
           curl --retry 3 --retry-delay 2 --connect-timeout 10 --max-time 60 -sSL "https://raw.githubusercontent.com/pmkol/easymosdns/rules/cdn_domain_list.txt" | grep -v '^#' | sed '/^$/d' | grep '^full:' | sed 's/full://' | sed 's/^/./' > direct.domain
           echo "Downloaded cdn domains -> direct.domain $(stat -c '%s' direct.domain) bytes"
-          curl --retry 3 --retry-delay 2 --connect-timeout 10 --max-time 60 -sSL "https://raw.githubusercontent.com/pmkol/easymosdns/rules/china_domain_list.txt" | grep -v '^#' | sed '/^$/d' | sed 's/^/./' > direct.domain
-          echo "Appended china domains -> direct.domain $(stat -c '%s' direct.domain) bytes"
           LC_ALL=C sort -u -o direct.domain direct.domain
           echo "Sorted direct.domain -> $(stat -c '%s' direct.domain) bytes"
 
