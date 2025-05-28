@@ -353,6 +353,7 @@
 .yandex.ua
 .sony.ua
 .vaticannews.va
+.java
 .pearsoninstitute.ac.za
 .kagyu.org.za
 .visa.co.za
@@ -395,6 +396,7 @@
 .apple.xn--czr694b
 .xn--hxtr4rozx.xn--czr694b
 .bmw.bb
+.imdb
 .mastercard.com.lb
 .youtube.com.lb
 .google.com.lb
@@ -466,6 +468,8 @@
 .intel.ac
 .vpn.ac
 .easy.ac
+.bbc
+.hsbc
 .lu2300.cc
 .ub0.cc
 .saonidh01.cc
@@ -700,11 +704,13 @@
 .sony.com.ec
 .gen.lib.rus.ec
 .pinterest.ec
+.panasonic
 .intel.lc
 .visa.com.lc
 .google.com.lc
 .bmw.lc
 .madvrlabs.llc
+.xn--qcka1pmc
 .mini.nc
 .bmw.nc
 .mastercard.inc
@@ -736,6 +742,7 @@
 .durex.com.bd
 .google.cd
 .yahoo.cd
+.mcd
 .sexhub.red
 .hentaihaven.red
 .amazon.red
@@ -826,11 +833,13 @@
 .blogspot.md
 .bmw.md
 .yandex.md
+.and
 .deno.land
 .jav.land
 .opentech.fund
 .google.td
 .blogspot.td
+.xn--cckwcxetd
 .jmcomic.ltd
 .pali.ltd
 .anaconda.cloud
@@ -860,6 +869,7 @@
 .paofu.cloud
 .ipfs-gateway.cloud
 .misskey.cloud
+.xn--flw351e
 .xn--gtvq61aiijy0b.xn--hxt814e
 .xn--gtvz22d.xn--hxt814e
 .nike.xn--hxt814e
@@ -950,6 +960,7 @@
 .porngo.tube
 .older.tube
 .hentais.tube
+.youtube
 .jav.place
 .ams02.space
 .jtube.space
@@ -962,6 +973,7 @@
 .luckydesigner.space
 .jetbrains.space
 .skyperfectjsat.space
+.office
 .metalpha.finance
 .maple.finance
 .clearpool.finance
@@ -1233,6 +1245,7 @@
 .mobileview.page
 .himalaya.exchange
 .dydx.exchange
+.guge
 .ikea.ie
 .alphera.ie
 .visa.ie
@@ -1287,9 +1300,14 @@
 .blogspot.co.ke
 .bmw.co.ke
 .duckduckgo.ke
+.nike
 .moresci.sale
 .wd.bible
-.goo.gle
+.oracle
+.kindle
+.gle
+.google
+.apple
 .douyintt10.me
 .sg120.me
 .avstar01.me
@@ -1533,6 +1551,8 @@
 .myftp.name
 .ddns.name
 .hidemy.name
+.showtime
+.chrome
 .google.ne
 .porn300.online
 .567321.online
@@ -1597,6 +1617,7 @@
 .metacubex.one
 .69xx.one
 .tranny.one
+.bridgestone
 .blinkload.zone
 .itch.zone
 .froth.zone
@@ -1652,6 +1673,7 @@
 .blogspot.pe
 .pinterest.pe
 .pearsonperu.pe
+.skype
 .yande.re
 .nyahentai.re
 .mini.re
@@ -1669,6 +1691,7 @@
 .vercel.store
 .svipshipin.store
 .91porny.store
+.azure
 .test-ipv6.se
 .tibet.a.se
 .nvidia.se
@@ -1919,8 +1942,10 @@
 .iphoneplus.wang
 .appletv.wang
 .apple-pay.wang
+.bing
 .creativecommons.engineering
 .pinterest.engineering
+.samsung
 .muncloud.dog
 .telegram.dog
 .jav.dog
@@ -1945,10 +1970,10 @@
 .xvidios.blog
 .stackoverflow.blog
 .fury.blog
-.translate.goog
-.pki.goog
-.usercontent.goog
+.goog
 .google.com.pg
+.xn--jlq480n2rg
+.bloomberg
 .faith100.org
 .ieeer10.org
 .facebook30.org
@@ -3991,6 +4016,7 @@
 .fastlane.ci
 .me.ns.ci
 .social.edu.ci
+.gucci
 .arena.taipei
 .li.taipei
 .metro.taipei
@@ -4036,6 +4062,7 @@
 .google.com.gi
 .yahoo.com.gi
 .google.ki
+.xn--cg4bki
 .gogoanime.wiki
 .spanking.wiki
 .thefappening.wiki
@@ -4066,6 +4093,7 @@
 .sony.com.ni
 .visa.co.ni
 .12diasderegalosdeitunes.co.ni
+.mini
 .misskey.04.si
 .test-ipv6.go6.si
 .nyaa.si
@@ -4422,6 +4450,7 @@
 .visa.com.lk
 .ipadmini.com.lk
 .bmw.lk
+.dclk
 .slobodnaevropa.mk
 .youtube.mk
 .google.mk
@@ -4435,6 +4464,7 @@
 .volvotrucks.mk
 .blogspot.mk
 .btcbank.bank
+.softbank
 .shdd.ink
 .binancezh.ink
 .mimi2022.link
@@ -10323,7 +10353,9 @@
 .bmw.cl
 .durex.cl
 .sony.cl
+.weatherchannel
 .sexvideos.tel
+.intel
 .kinmen.travel
 .z-lib.gl
 .google.gl
@@ -10353,6 +10385,8 @@
 .durex.co.il
 .disney.co.il
 .stackoverflow.email
+.gmail
+.hotmail
 .nga.mil
 .dma.mil
 .darpa.mil
@@ -10371,6 +10405,7 @@
 .nko.navy.mil
 .usno.navy.mil
 .navyfamily.navy.mil
+.dell
 .google.ml
 .sspro.ml
 .mohu.ml
@@ -10567,6 +10602,7 @@
 .x.team
 .hsbc.bm
 .bmw.bm
+.ibm
 .ipod.cm
 .google.cm
 .apple.cm
@@ -23771,6 +23807,7 @@
 .camwhores.forum
 .google.co.zm
 .volvotrucks.co.zm
+.theguardian
 .google.com.bn
 .applestore.com.bn
 .mini.com.bn
@@ -24017,9 +24054,14 @@
 .lfai.foundation
 .ethereum.foundation
 .dat.foundation
+.playstation
+.canon
+.amazon
 .google.pn
 .intel.pn
 .yahoo.pn
+.cern
+.porn
 .youtube.sn
 .google.sn
 .intel.sn
@@ -24074,6 +24116,7 @@
 .zzdh.run
 .esm.run
 .xvideo.run
+.yamaxun
 .famima.vn
 .garena.vn
 .thegioitinhoc.vn
@@ -24271,7 +24314,8 @@
 .gimy.co
 .fury.co
 .hentaiz.co
-.dmc.nico
+.nico
+.cisco
 .ikea.do
 .ikea.com.do
 .visa.com.do
@@ -24783,6 +24827,8 @@
 .savethedate.foo
 .nomulus.foo
 .keytransparency.foo
+.goo
+.yahoo
 .ikea.ro
 .nvidia.ro
 .starbucksromania.ro
@@ -24933,6 +24979,7 @@
 .mafia-linkz.to
 .xlinkz.to
 .cpz.to
+.volvo
 .home.saxo
 .okazudouga.tokyo
 .metropolitana.tokyo
@@ -25633,6 +25680,7 @@
 .sony.co.cr
 .rutracker.cr
 .12diasderegalosdeitunes.cr
+.weather
 .xv1.monster
 .photo-image.monster
 .pikabu.monster
@@ -25888,6 +25936,7 @@
 .huffingtonpost.kr
 .ntdtv.kr
 .posty.kr
+.flickr
 .google.nr
 .ikea.pr
 .youtube.pr
@@ -25946,6 +25995,7 @@
 .visa.com.bs
 .yahoo.bs
 .bmw.bs
+.cbs
 .wsj.jobs
 .verisign.jobs
 .amazon.jobs
@@ -25989,6 +26039,7 @@
 .cunhua.pics
 .sexhd.pics
 .forpojie.pics
+.mcdonalds
 .ikea.es
 .nvidia.es
 .alphera.es
@@ -26161,6 +26212,7 @@
 .89.64.charter.constitutionalism.solutions
 .airhorn.solutions
 .bigbeans.solutions
+.zappos
 .generated.photos
 .amateurporn.photos
 .myporno.photos
@@ -26323,6 +26375,7 @@
 .kucoin.plus
 .warp.plus
 .prts.plus
+.nexus
 .top81.ws
 .google.ws
 .9anime.ws
@@ -26342,6 +26395,7 @@
 .missav.ws
 .x1337x.ws
 .0xxx.ws
+.aws
 .viet69.news
 .freechina.news
 .bad.news
@@ -26361,6 +26415,7 @@
 .manyvoices.news
 .matters.news
 .vct.news
+.windows
 .hentai.toys
 .ikea.at
 .nvidia.at
@@ -26430,6 +26485,7 @@
 .yahoo.bt
 .google.com.et
 .lolita.bet
+.target
 .d100.net
 .1e100.net
 .thaigirls100.net
@@ -28220,6 +28276,7 @@
 .prozz.net
 .pornobuzz.net
 .discord.gift
+.microsoft
 .bmw-motorrad.gt
 .youtube.gt
 .intel.gt
@@ -28313,6 +28370,7 @@
 .disney.it
 .itsky.it
 .sony.it
+.mit
 .ikea.lt
 .visa.lt
 .mini-connected.lt
@@ -28332,6 +28390,7 @@
 .yandex.lt
 .ebay.lt
 .sony.lt
+.adult
 .intel.mt
 .hsbc.com.mt
 .youtube.com.mt
@@ -28390,6 +28449,7 @@
 .manga18.art
 .signal.art
 .misskey.art
+.walmart
 .meizhong.report
 .gfw.report
 .apk.support
@@ -28432,6 +28492,7 @@
 .starbucks.tt
 .ift.tt
 .bmw.tt
+.hangout
 .intel.yt
 .unblocker.yt
 .ikea.au
@@ -29427,6 +29488,7 @@
 .google.mw
 .intel.mw
 .yahoo.mw
+.bmw
 .get.how
 .devsitetest.how
 .dyfl1.pw
@@ -29789,6 +29851,7 @@
 .volvotrucks.co.zw
 .69shuba.cx
 .javmost.cx
+.yandex
 .tube18.sex
 .shemalehd.sex
 .atube.sex
@@ -29863,6 +29926,8 @@
 .blogspot.mx
 .pinterest.mx
 .durex.mx
+.xbox
+.fox
 .visa.sx
 .ping.sx
 .intel.sx
@@ -30009,6 +30074,7 @@
 .blogspot.com.cy
 .bmw.com.cy
 .walmart.pharmacy
+.godaddy
 .pheonix.money
 .rb.gy
 .nike.gy
@@ -30020,6 +30086,7 @@
 .dtci.technology
 .visa.ky
 .bmw.com.ky
+.sky
 .embed.ly
 .adobe.ly
 .youtube.ly
@@ -30110,6 +30177,7 @@
 .hp.company
 .hetzner.company
 .x.company
+.sony
 .youtube.soy
 .iam.soy
 .visa.com.py
@@ -30319,6 +30387,7 @@
 .sony.biz
 .xxxy.biz
 .sexxxy.biz
+.gbiz
 .drweb.kz
 .mastercard.kz
 .youtube.kz
