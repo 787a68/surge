@@ -279,7 +279,14 @@
 .www.apple.com
 .cn.widevine.com
 .cdn.marketplaceimages.windowsphone.com
+.wmota.htcsense.com
+.home.htcsense.com
+.egg.htcsense.com
+.geo-prism.htcsense.com
+.home-cn.htcsense.com
+.geo-prism-cn.htcsense.com
 .cs-analytics.htcsense.com
+.start.htcsense.com
 .www.htcsense.com
 .ctldl.windowsupdate.com
 .cdn1.evernote.com
@@ -349,6 +356,7 @@
 .gog-cdn-fastly.gog.com
 .olay-cn.cdnpg.com
 .cn.windowssearch.com
+.metrics.deploy.akamai.com
 .uplaypc-s-ubisoft.cdn.ubi.com
 .click.dji.com
 .prm.dji.com
@@ -430,6 +438,8 @@
 .www.travelzoo.com
 .verdaccio.cnno1.uds-qa.lenovo.com
 .thinkcloud.lenovo.com
+.prm.lenovo.com
+.deny-netfilter.uds-dev.lenovo.com
 .www8.hp.com
 .lx2.cok.elexapp.com
 .googletagmanager.com
@@ -482,8 +492,10 @@
 .performanceparameters.googleapis.com
 .fonts.googleapis.com
 .chinacache.cedexis.com
+.waf.cdnetworks.com
 .ngportal.cdnetworks.com
 .siportal.cdnetworks.com
+.adminportal.cdnetworks.com
 .ocsp-data.us.cdnetworks.com
 .account.cdnetworks.com
 .security.cdnetworks.com
@@ -665,6 +677,7 @@
 .ares.dl.playstation.net
 .zeus.dl.playstation.net
 .cashier.alipay.com.srip.net
+.2-01-5830-0005.cdx.cedexis.net
 .icloud-cdn.icloud.com.akadns.net
 .init-p01md-lb.push-apple.com.akadns.net
 .init-p01st-lb.push-apple.com.akadns.net
