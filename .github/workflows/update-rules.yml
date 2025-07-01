@@ -1,0 +1,178 @@
+name: Update Rules
+
+on:
+  schedule:
+    - cron: '0 0 * * 0'
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/**'
+  workflow_dispatch:
+
+jobs:
+  update-rules:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Prepare Repository
+        run: |
+          set -eo pipefail
+          git fetch origin
+          if git branch -r | grep 'origin/rule'; then
+            git checkout rule
+          else
+            git checkout --orphan rule
+          fi
+          git fetch origin main
+          git checkout main -- .github/
+
+      - name: Update Reject Rules
+        run: |
+          set -eo pipefail
+          curl --retry 3 --retry-delay 2 --connect-timeout 10 --max-time 60 -sSL "https://raw.githubusercontent.com/badmojr/1Hosts/master/Pro/domains.wildcards" | grep -v '^#' | sed '/^$/d' | sed 's/^/./' > reject.domain
+          echo "Downloaded from 1Hosts -> reject.domain $(stat -c '%s' reject.domain) bytes"
+          curl --retry 3 --retry-delay 2 --connect-timeout 10 --max-time 60 -sSL "https://raw.githubusercontent.com/Cats-Team/AdRules/main/adrules_domainset.txt" | grep -v '^#' | sed '/^$/d' | sed 's/^+//' >> reject.domain
+          echo "Appended AdRules -> reject.domain $(stat -c '%s' reject.domain) bytes"
+          curl --retry 3 --retry-delay 2 --connect-timeout 10 --max-time 60 -sSL "https://raw.githubusercontent.com/TG-Twilight/AWAvenue-Ads-Rule/main/Filters/AWAvenue-Ads-Rule-Surge.list" | grep -v '^#' | sed '/^$/d' >> reject.domain
+          echo "Appended Surge Rule -> reject.domain $(stat -c '%s' reject.domain) bytes"
+          curl --retry 3 --retry-delay 2 --connect-timeout 10 --max-time 60 -sSL "https://raw.githubusercontent.com/privacy-protection-tools/anti-AD/master/anti-ad-surge2.txt" | grep -v '^#' | sed '/^$/d' >> reject.domain
+          echo "Appended anti-AD -> reject.domain $(stat -c '%s' reject.domain) bytes"
+          curl --retry 3 --retry-delay 2 --connect-timeout 10 --max-time 60 -sSL "https://raw.githubusercontent.com/privacy-protection-tools/anti-AD/master/discretion/pcdn.txt" | grep -v '^#' | sed '/^$/d' >> reject.domain
+          echo "Appended anti-AD pcdn -> reject.domain $(stat -c '%s' reject.domain) bytes"
+          curl --retry 3 --retry-delay 2 --connect-timeout 10 --max-time 60 -sSL "https://raw.githubusercontent.com/pmkol/easymosdns/rules/ad_domain_list.txt" | grep -v '^#' | sed '/^$/d' | sed 's/^\.//' >> reject.domain
+          echo "Appended easymosdns ad -> reject.domain $(stat -c '%s' reject.domain) bytes"
+          LC_ALL=C sort -u -o reject.domain reject.domain
+          echo "Sorted reject.domain -> $(stat -c '%s' reject.domain) bytes"
+
+      - name: Update Direct Rules
+        run: |
+          set -eo pipefail
+          curl --retry 3 --retry-delay 2 --connect-timeout 10 --max-time 60 -sSL "https://raw.githubusercontent.com/pmkol/easymosdns/rules/cdn_domain_list.txt" | grep -v '^#' | sed '/^$/d' | grep '^full:' | sed 's/full://' | sed 's/^/./' > direct.domain
+          echo "Downloaded cdn domains -> direct.domain $(stat -c '%s' direct.domain) bytes"
+          LC_ALL=C sort -u -o direct.domain direct.domain
+          echo "Sorted direct.domain -> $(stat -c '%s' direct.domain) bytes"
+
+      - name: Update Proxy Rules
+        run: |
+          set -eo pipefail
+          curl --retry 3 --retry-delay 2 --connect-timeout 10 --max-time 60 -sSL "https://raw.githubusercontent.com/pmkol/easymosdns/rules/gfw_domain_list.txt" | grep -v '^#' | sed '/^$/d' > proxy.domain
+          echo "Downloaded proxy domains -> proxy.domain $(stat -c '%s' proxy.domain) bytes"
+          curl --retry 3 --retry-delay 2 --connect-timeout 10 --max-time 60 -sSL "https://raw.githubusercontent.com/Loyalsoldier/v2ray-rules-dat/release/proxy-tld-list.txt" | grep -v '^#' | sed '/^$/d' >> proxy.domain
+          echo "Appended proxy tld -> proxy.domain $(stat -c '%s' proxy.domain) bytes"
+          curl --retry 3 --retry-delay 2 --connect-timeout 10 --max-time 60 -sSL "https://raw.githubusercontent.com/Loyalsoldier/surge-rules/release/apple.txt" | grep -v '^#' | sed '/^$/d' | sed 's/^\.//' > remove.list
+          echo "Downloaded remove.list from apple.txt -> $(stat -c '%s' remove.list) bytes"
+          curl --retry 3 --retry-delay 2 --connect-timeout 10 --max-time 60 -sSL "https://raw.githubusercontent.com/Loyalsoldier/surge-rules/release/icloud.txt" | grep -v '^#' | sed '/^$/d' | sed 's/^\.//' >> remove.list
+          echo "Appended icloud.txt -> remove.list $(stat -c '%s' remove.list) bytes"
+          curl --retry 3 --retry-delay 2 --connect-timeout 10 --max-time 60 -sSL "https://raw.githubusercontent.com/v2fly/domain-list-community/4pr_scholar_non_cn/data/paypal" | sed -e 's/[#@].*$//' -e 's/^full://' -e '/^[[:space:]]*$/d' >> remove.list
+          echo "Appended paypal file -> remove.list $(stat -c '%s' remove.list) bytes"
+          LC_ALL=C sort -u -o remove.list remove.list
+          echo "Sorted remove.list -> $(stat -c '%s' remove.list) bytes"
+          grep -Fvxf remove.list proxy.domain > proxy.tmp && mv proxy.tmp proxy.domain
+          echo "Filtered proxy.domain -> $(stat -c '%s' proxy.domain) bytes"
+          sed -i 's/^/./' proxy.domain
+          LC_ALL=C sort -u -o proxy.domain proxy.domain
+          echo "Sorted proxy.domain -> $(stat -c '%s' proxy.domain) bytes"
+          curl --retry 3 --retry-delay 2 --connect-timeout 10 --max-time 60 -sSL "https://core.telegram.org/resources/cidr.txt" | grep -v '^#' | sed '/^$/d' | awk '{if ($1 ~ ":") print "IP-CIDR6," $1 ",no-resolve"; else print "IP-CIDR," $1 ",no-resolve"}' > proxy.rule
+          echo "Generated proxy.rule -> $(stat -c '%s' proxy.rule) bytes"
+
+      - name: Apply Custom Rules
+        run: |
+          set -eo pipefail
+          shopt -s nullglob
+          process_custom() {
+            local target_file=$1
+            local custom_file=".github/$(basename "$target_file" .domain).custom"
+            local rule_file="$(basename "$target_file" .domain).rule"
+            local tmp_file="${rule_file}.tmp"
+            if [ -f "$custom_file" ]; then
+              > "$tmp_file"
+              while IFS= read -r line || [ -n "$line" ]; do
+                case "$line" in
+                  domain:*) echo "${line#domain:}" >> "$target_file" ;;
+                  rule:*)   echo "${line#rule:}" >> "$tmp_file" ;;
+                  -domain:*) pattern="${line#-domain:}"; grep -F -v "$pattern" "$target_file" > "${target_file}.tmp" && mv "${target_file}.tmp" "$target_file" ;;
+                  -rule:*)   pattern="${line#-rule:}"; grep -F -v "$pattern" "$tmp_file" > "${tmp_file}.tmp" && mv "${tmp_file}.tmp" "$tmp_file" ;;
+                esac
+              done < "$custom_file"
+              if [ -s "$tmp_file" ]; then
+                mv "$tmp_file" "$rule_file"
+              else
+                rm -f "$tmp_file"
+              fi
+              echo "Updated $(basename "$target_file") -> $(stat -c '%s' "$target_file") bytes"
+              echo "Updated $(basename "$rule_file") -> $(stat -c '%s' "$rule_file") bytes"
+            fi
+          }
+          for file in *.domain; do
+            process_custom "$file"
+          done
+          shopt -u nullglob
+
+      - name: Apply Rules Filtering
+        run: |
+          set -eo pipefail
+          shopt -s nullglob
+          for rule_file in *.rule; do
+            domain_file="$(basename "$rule_file" .rule).domain"
+            [ ! -f "$domain_file" ] && continue
+            cp "$domain_file" "${domain_file}.bak"
+            sed -i 's/^\.//' "$domain_file"
+            awk -F, '/^DOMAIN-KEYWORD,/{print $2}' "$rule_file" | awk 'NF' | while read -r kw; do
+              sed -i "/$kw/d" "$domain_file"
+            done
+            awk -F, '/^DOMAIN-WILDCARD,/{print $2}' "$rule_file" | awk 'NF' | while read -r w; do
+              p=$(echo "$w" | sed 's/\*/.*/g; s/?/./g')
+              sed -i "/$p/d" "$domain_file"
+            done
+            LC_ALL=C sort -u -o "$domain_file" "$domain_file"
+            rm -f "${domain_file}.bak"
+            echo "Filtered $(basename "$domain_file") -> $(stat -c '%s' "$domain_file") bytes"
+          done
+          shopt -u nullglob
+
+      - name: Filter and Deduplicate
+        run: |
+          set -eo pipefail
+          shopt -s nullglob
+          for domain in *.domain; do
+            rev "$domain" > "$domain".rev
+            sort -u "$domain".rev > "$domain".rev.sorted
+            awk 'NR==1{prev=$0;next} {if(index($0,prev)==1 && (length($0)==length(prev) || substr($0,(length(prev)+1),1)==".") ) next; else {print prev; prev=$0}} END{print prev}' "$domain".rev.sorted > "$domain".rev.dedup
+            rev "$domain".rev.dedup > "$domain".dedup
+            sed -i -E 's/^([^\.])/\.\1/' "$domain".dedup
+            mv "$domain".dedup "$domain"
+            rm -f "$domain".rev "$domain".rev.sorted "$domain".rev.dedup
+            echo "Processed $(basename "$domain") -> $(stat -c '%s' "$domain") bytes"
+          done
+          shopt -u nullglob
+
+      - name: Finalize Changes
+        run: |
+          set -eo pipefail
+          rm -rf .github
+          git rm -rf --cached .github || true
+          rm -f *.txt *.list *.tmp || true
+          shopt -s nullglob
+          for file in *.domain *.rule; do
+            sed -i '/^[[:space:]]*$/d' "$file"
+            sed -i '${/^$/d}' "$file"
+            echo -n "$(cat "$file")" > "$file"
+            echo "Processed $(basename "$file") -> $(stat -c '%s' "$file") bytes"
+          done
+          for file in *.domain *.rule; do
+            if [ -f "$file" ] && [ ! -s "$file" ]; then
+              echo "Deleted $(basename "$file")"
+              rm -f "$file"
+            fi
+          done
+          shopt -u nullglob
+          git config --global user.email "action@github.com"
+          git config --global user.name "GitHub Action"
+          if [ -n "$(git status --porcelain)" ]; then
+            git add --ignore-errors -- '*.domain' '*.rule'
+            git commit -m "Rules update $(date)"
+            git push origin rule --force
+          fi
