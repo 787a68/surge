@@ -11,3 +11,4 @@ rule:DOMAIN-KEYWORD,banner
 rule:DOMAIN-KEYWORD,marketing
 rule:DOMAIN-KEYWORD,smetrics
 rule:DOMAIN-KEYWORD,tracking
+-domain:.amdc.alipay.com
