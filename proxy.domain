@@ -710,6 +710,7 @@
 .sony.com.ec
 .gen.lib.rus.ec
 .pinterest.ec
+.z-library.ec
 .panasonic
 .intel.lc
 .visa.com.lc
@@ -2441,7 +2442,6 @@
 .ffmpeg.org
 .fofg.org
 .cipfg.org
-.btdigg.org
 .download.aircrack-ng.org
 .tuidang.org
 .huanghuagang.org
@@ -2970,6 +2970,7 @@
 .semanticscholar.org
 .instituteofwar.org
 .lencr.org
+.websdr.org
 .mynumber.org
 .prcleader.org
 .webevader.org
@@ -3870,6 +3871,7 @@
 .clova.ai
 .github.ai
 .mlc.ai
+.trae.ai
 .claude.ai
 .grazie.ai
 .jiuse.ai
@@ -3892,6 +3894,7 @@
 .character.ai
 .openrouter.ai
 .videoindexer.ai
+.cerebras.ai
 .wyndlabs.ai
 .chutes.ai
 .jetbrains.ai
@@ -11793,6 +11796,7 @@
 .foxnewsb2b.com
 .po2b.com
 .xn--9trs65b.com
+.xn--u2u927b.com
 .imageab.com
 .fab.com
 .sketchfab.com
@@ -12130,6 +12134,7 @@
 .spiceworksstatic.com
 .pplusstatic.com
 .awsstatic.com
+.nftstatic.com
 .redditstatic.com
 .ttwstatic.com
 .wixstatic.com
@@ -12744,6 +12749,7 @@
 .microsoftcloud.com
 .vagrantcloud.com
 .ifontcloud.com
+.samsungiotcloud.com
 .rixcloud.com
 .bbycloud.com
 .shopifycloud.com
@@ -12981,6 +12987,7 @@
 .redditspace.com
 .myspace.com
 .pussyspace.com
+.bntrace.com
 .adobecce.com
 .xecce.com
 .didce.com
@@ -13139,9 +13146,11 @@
 .adventofcode.com
 .madewithcode.com
 .makebettercode.com
+.marscode.com
 .mymmode.com
 .delcam-electrode.com
 .beatsbydrevipde.com
+.claude.com
 .hentaidude.com
 .sexidude.com
 .jerkdude.com
@@ -15021,6 +15030,7 @@
 .afewmomentswith.com
 .yo1health.com
 .pastahealth.com
+.samsunghealth.com
 .mailhealth.com
 .yahoohealth.com
 .realclearhealth.com
@@ -16673,6 +16683,7 @@
 .shireyishunjian.com
 .fabuyemian.com
 .xiongpian.com
+.guardarian.com
 .launchpadlibrarian.com
 .extraasian.com
 .peeasian.com
@@ -18458,6 +18469,7 @@
 .uisp.com
 .huabansp.com
 .vpnsp.com
+.samsungosp.com
 .jdavsp.com
 .922tp.com
 .dsmtp.com
@@ -18821,6 +18833,7 @@
 .mayauser.com
 .serveuser.com
 .superuser.com
+.diabrowser.com
 .epicbrowser.com
 .kiwibrowser.com
 .puffinbrowser.com
@@ -19243,6 +19256,7 @@
 .headphonepubs.com
 .verybs.com
 .lingvodics.com
+.asianfanfics.com
 .mayaformotiongraphics.com
 .autodeskmayaformotiongraphics.com
 .bizographics.com
@@ -20759,6 +20773,7 @@
 .tiffany-towers.com
 .wixanswers.com
 .brazzers.com
+.samsungrs.com
 .realclearpublicaffairs.com
 .theaffairs.com
 .foreignaffairs.com
@@ -21039,6 +21054,8 @@
 .spotifycharts.com
 .hpsmarts.com
 .ebayparts.com
+.memealerts.com
+.donationalerts.com
 .mastercardidtheftalerts.com
 .attexperts.com
 .kampalaexclusiveescorts.com
@@ -21650,6 +21667,7 @@
 .marvelsdoubleagent.com
 .salesforceliveagent.com
 .cloudflareclient.com
+.claudemcpclient.com
 .attnetclient.com
 .blog.soylent.com
 .splatoon2tournament.com
@@ -21674,6 +21692,7 @@
 .kakaoent.com
 .msoopent.com
 .ijavtorrent.com
+.samsungconsent.com
 .hh-content.com
 .pobl-content.com
 .walmart-content.com
@@ -24483,6 +24502,7 @@
 .bwbx.io
 .cex.io
 .ddex.io
+.stealthex.io
 .dragonex.io
 .cloudlatex.io
 .vday.io
@@ -24717,6 +24737,7 @@
 .nurgay.to
 .moby.to
 .gimy.to
+.boosty.to
 .torrentgalaxy.to
 .mafia-linkz.to
 .xlinkz.to
@@ -25340,6 +25361,7 @@
 .comments.app
 .get.app
 .meawallet.app
+.jav.app
 .coreldraw.app
 .sing-box.app
 .91cy.app
@@ -28722,6 +28744,7 @@
 .thothub.ru
 .hentaicomic.ru
 .fastpic.ru
+.vkcloud-static.ru
 .bmw-motorrad.ru
 .pornocd.ru
 .jd.ru
@@ -28759,6 +28782,7 @@
 .apples-msk.ru
 .test-ipv6.ttk.ru
 .vk.ru
+.cdn-vk.ru
 .sexfilm.al.ru
 .ebaysocial.ru
 .intel.ru
@@ -28775,6 +28799,7 @@
 .apple-watch.com.ru
 .dell.com.ru
 .yandex.com.ru
+.okcdn.ru
 .vkusercdn.ru
 .nurofen.ru
 .dzen.ru
@@ -28866,6 +28891,7 @@
 .tg.dev
 .stackpath.dev
 .autodesk.dev
+.vercel.dev
 .da3dsoul.dev
 .bdn.dev
 .mdn.dev
