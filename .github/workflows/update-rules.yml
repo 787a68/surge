@@ -32,7 +32,7 @@ jobs:
       - name: Update Reject Rules
         run: |
           set -eo pipefail
-          curl --retry 3 --retry-delay 2 --connect-timeout 10 --max-time 60 -sSL "https://raw.githubusercontent.com/badmojr/1Hosts/master/Pro/domains.wildcards" | grep -v '^#' | sed '/^$/d' | sed 's/^/./' > reject.domain
+          curl --retry 3 --retry-delay 2 --connect-timeout 10 --max-time 60 -sSL "https://raw.githubusercontent.com/badmojr/1Hosts/master/Lite/domains.wildcards" | grep -v '^#' | sed '/^$/d' | sed 's/^/./' > reject.domain
           echo "Downloaded from 1Hosts -> reject.domain $(stat -c '%s' reject.domain) bytes"
           curl --retry 3 --retry-delay 2 --connect-timeout 10 --max-time 60 -sSL "https://raw.githubusercontent.com/Cats-Team/AdRules/main/adrules_domainset.txt" | grep -v '^#' | sed '/^$/d' | sed 's/^+//' >> reject.domain
           echo "Appended AdRules -> reject.domain $(stat -c '%s' reject.domain) bytes"
