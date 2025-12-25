@@ -44,6 +44,26 @@ jobs:
           | sort -u \
           | sed -E 's/^([^\.])/\.\1/' > proxy.domain
 
+      # 3b) 生成 proxy.rule (Telegram CIDR)
+      - name: Build proxy.rule from Telegram CIDR
+        run: |
+          curl -sSL https://core.telegram.org/resources/cidr.txt -o telegram.cidr.tmp
+
+          awk '
+          /^[[:space:]]*#/ {next}        # 跳过注释
+          /^[[:space:]]*$/ {next}        # 跳过空行
+          {
+            cidr=$0
+            gsub(/^[[:space:]]+|[[:space:]]+$/,"",cidr)
+            if (cidr ~ /:/) {
+              # IPv6
+              print "IP-CIDR6," cidr
+            } else {
+              # IPv4
+              print "IP-CIDR," cidr
+            }
+          }' telegram.cidr.tmp > proxy.rule
+
       # 4) 生成 direct.domain
       - name: Build direct.domain with dot prefix
         run: |
@@ -58,12 +78,12 @@ jobs:
 
           awk '
           BEGIN {print "#!name=General"; print "#!category=Main"}
-          /^#!arguments/ {next}
-          /^[[:space:]]*#/ {next}
-          /^[[:space:]]*$/ {next}
+          /^#!arguments/ {next}              # 不再保留 #!arguments 行
+          /^[[:space:]]*#/ {next}            # 跳过注释
+          /^[[:space:]]*$/ {next}            # 跳过空行
           {
-            if ($0 ~ /^[A-Z]/) gsub(/[[:space:]]+/,"")
-            else gsub(/^[[:space:]]+|[[:space:]]+$/,"")
+            if ($0 ~ /^[A-Z]/) gsub(/[[:space:]]+/,"")   # 大写字母开头的行去掉所有空格
+            else gsub(/^[[:space:]]+|[[:space:]]+$/,"")  # 其他行去掉首尾空格
             print
           }' blockAds.module.tmp > main.module
 
