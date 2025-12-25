@@ -20,7 +20,7 @@ jobs:
       # 2) 清理旧文件，保留 .git/.github
       - name: Purge previous files keep .github
         run: |
-          git ls-files -z | xargs -0 -I{} bash -lc '[[ "{}" =~ ^\.github/ ]] || git rm -f "{}"' || true
+          git rm -rf ./* || true
           find . -mindepth 1 -maxdepth 1 -not -name '.git' -not -name '.github' -exec rm -rf {} +
 
       # 3) 生成 proxy.domain（后缀过滤 apple/icloud/google）
@@ -32,17 +32,14 @@ jobs:
           curl -sSL https://raw.githubusercontent.com/Loyalsoldier/surge-rules/release/google.txt -o google.txt.tmp
 
           # 清理 proxy.txt
-          grep -vE '^[[:space:]]*#' proxy.txt.tmp | grep -vE '^[[:space:]]*$' \
-          | sed -E 's/^[[:space:]]+|[[:space:]]+$//g' \
-          | sed 's/^\.//' > proxy.norm.tmp
+          awk '!/^#/ && NF {gsub(/^[[:space:]]+|[[:space:]]+$/,""); sub(/^\./,""); print}' proxy.txt.tmp > proxy.norm.tmp
 
-          # 清理后缀文件，统一去掉行首点
-          for f in apple.txt.tmp icloud.txt.tmp google.txt.tmp; do
-            sed -E 's/^[[:space:]]+|[[:space:]]+$//g; s/^\.//' "$f" > "$f.suffix.tmp"
-          done
-          cat apple.txt.tmp.suffix.tmp icloud.txt.tmp.suffix.tmp google.txt.tmp.suffix.tmp > suffixes.tmp
+          # 清理并合并后缀文件
+          cat apple.txt.tmp icloud.txt.tmp google.txt.tmp \
+          | awk '!/^#/ && NF {gsub(/^[[:space:]]+|[[:space:]]+$/,""); sub(/^\./,""); print}' \
+          | sort -u > suffixes.tmp
 
-          # 过滤掉后缀集合
+          # 过滤掉后缀集合并补点
           grep -vF -f suffixes.tmp proxy.norm.tmp \
           | sort -u \
           | sed -E 's/^([^\.])/\.\1/' > proxy.domain
@@ -51,10 +48,8 @@ jobs:
       - name: Build direct.domain with dot prefix
         run: |
           curl -sSL https://raw.githubusercontent.com/Loyalsoldier/surge-rules/release/direct.txt -o direct.txt.tmp
-          grep -vE '^[[:space:]]*#' direct.txt.tmp | grep -vE '^[[:space:]]*$' \
-          | sed -E 's/^[[:space:]]+|[[:space:]]+$//g' \
-          | sort -u \
-          | sed -E 's/^([^\.])/\.\1/' > direct.domain
+          awk '!/^#/ && NF {gsub(/^[[:space:]]+|[[:space:]]+$/,""); if(substr($0,1,1)!=".") print "."$0; else print $0}' direct.txt.tmp \
+          | sort -u > direct.domain
 
       # 5) 处理 blockAds.module → main.module
       - name: Process entire blockAds.module to main.module
@@ -62,44 +57,31 @@ jobs:
           curl -sSL https://raw.githubusercontent.com/fmz200/wool_scripts/refs/heads/main/Surge/module/blockAds.module -o blockAds.module.tmp
 
           awk '
-            {
-              line=$0
-              if (line ~ /^#!arguments/) { print line; next }
-              if (line ~ /^[[:space:]]*#/) next
-              if (line ~ /^[[:space:]]*$/) next
-              if (line ~ /^[A-Z]/) {
-                gsub(/[[:space:]]+/,"",line)   # 大写字母开头的行去掉所有空格
-              } else {
-                gsub(/^[[:space:]]+|[[:space:]]+$/,"",line)
-              }
-              print line
-            }
-          ' blockAds.module.tmp > main.module.tmp
-
+          BEGIN {print "#!name=General"; print "#!category=Main"}
+          /^#!arguments/ {next}
+          /^[[:space:]]*#/ {next}
+          /^[[:space:]]*$/ {next}
           {
-            echo "#!name=General"
-            echo "#!category=Main"
-            cat main.module.tmp
-          } > main.module
+            if ($0 ~ /^[A-Z]/) gsub(/[[:space:]]+/,"")
+            else gsub(/^[[:space:]]+|[[:space:]]+$/,"")
+            print
+          }' blockAds.module.tmp > main.module
 
       # 6) 处理 rejectAd.list → reject.domain 和 reject.rule
       - name: Build reject.domain and reject.rule
         run: |
           curl -sSL https://raw.githubusercontent.com/fmz200/wool_scripts/main/Loon/rule/rejectAd.list -o rejectAd.list.tmp
 
-          # 简单清理：去掉注释、空行，并删除所有空格
-          grep -vE '^[[:space:]]*#' rejectAd.list.tmp | grep -vE '^[[:space:]]*$' \
-          | sed -E 's/[[:space:]]+//g' > reject.cleaned.tmp
-
-          # DOMAIN-SUFFIX/DOMAIN → reject.domain
-          grep -E '^(DOMAIN-SUFFIX|DOMAIN),' reject.cleaned.tmp \
-            | sed -E 's/^(DOMAIN-SUFFIX|DOMAIN),//' \
-            | awk '{ if(length){ if(substr($0,1,1)!=".") print "."$0; else print $0 }}' \
-            | sort -u > reject.domain
-
-          # 其他行 → reject.rule
-          grep -vE '^(DOMAIN-SUFFIX|DOMAIN),' reject.cleaned.tmp \
-            | sort -u > reject.rule
+          awk '!/^#/ && NF {
+            gsub(/[[:space:]]+/,"")
+            if ($0 ~ /^(DOMAIN-SUFFIX|DOMAIN),/) {
+              sub(/^(DOMAIN-SUFFIX|DOMAIN),/,"")
+              if(substr($0,1,1)!=".") print "."$0 > "reject.domain"
+              else print $0 > "reject.domain"
+            } else {
+              print > "reject.rule"
+            }
+          }' rejectAd.list.tmp
 
       # 7) 提交并推送
       - name: Commit and push with detailed changes
@@ -110,8 +92,7 @@ jobs:
 
           git add .
 
-          NUMSTAT=$(git diff --cached --numstat | awk '{printf "%s +%s/-%s\n", $3, $1, $2}')
+          NUMSTAT=$(git diff --cached --numstat | awk '{print $3 " +" $1 "/-" $2}')
 
-          # 使用多次 -m 参数生成换行
           git commit -m "Update rules" -m "Changes:" -m "$NUMSTAT" || echo "No changes to commit"
           git push origin rule
