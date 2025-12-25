@@ -94,5 +94,5 @@ jobs:
 
           NUMSTAT=$(git diff --cached --numstat | awk '{print $3 " +" $1 "/-" $2}')
 
-          git commit -m "Update rules" -m "Changes:" -m "$NUMSTAT" || echo "No changes to commit"
+          git commit -m "Update rules" -m "$NUMSTAT" || echo "No changes to commit"
           git push origin rule
