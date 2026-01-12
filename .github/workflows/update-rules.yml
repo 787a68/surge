@@ -1,50 +1,68 @@
-
 # ============================================================
-# 工作流：Update Rules
-# 目标：
-#   - 每天定时（或手动）更新 rule 分支中的规则产物文件
-#   - 生成：proxy.domain / proxy.rule / direct.domain / main.module / reject.domain / reject.rule
+# 工作流名称：Update Rules
+# 
+# 功能说明：
+#   定时或手动更新 rule 分支中的网络规则文件，用于代理分流和广告拦截
 #
-# 关键点（本次重构重点）：
-#   - Step 5：统一合并模块 [Rule] + rejectAd.list 的规则源
-#   - reject.domain：提取 DOMAIN / DOMAIN-SUFFIX 的域名 -> 后缀匹配去重 + 排序
-#   - reject.rule：剩余规则 -> 去除 ,REJECT... -> IP-CIDR(6) 追加 ,no-resolve -> 去重排序
-#   - main.module：提取并合并 [URL Rewrite]/[Header Rewrite]/[Body Rewrite]/[Map Local]/[Script]，
-#                  每块排序去重；最后按固定块顺序输出
-#   - [MITM]：仅提取 hostname = %APPEND% 后面的域名（仅英文逗号分隔）
-#             sort -u -> paste -sd, -> 生成单行；若为空则不输出 [MITM] 块
+# 产物文件：
+#   - proxy.domain：代理域名列表（GFW 域名）
+#   - proxy.rule：代理规则列表（Telegram IP 段）
+#   - direct.domain：直连域名列表（国内域名）
+#   - reject.domain：拦截域名列表（广告/追踪域名，后缀匹配去重）
+#   - reject.rule：拦截规则列表（非域名类规则，如 IP-CIDR）
+#   - main.module：Surge 模块文件（URL/Header/Body 重写、脚本等）
+#
+# 核心处理逻辑：
+#   1. proxy/direct 规则：直接从上游下载、格式化、去重排序
+#   2. reject 规则：合并多个上游源，分类处理：
+#      - 域名类规则 → reject.domain（智能后缀去重）
+#      - 其他规则 → reject.rule（标准化格式）
+#   3. main.module：从多个模块文件中提取各类重写规则和脚本，分块合并
+#
+# 规则来源：
+#   - Loyalsoldier/surge-rules：GFW、直连、拦截域名列表
+#   - fmz200/wool_scripts：广告拦截模块和规则
+#   - QingRex/LoonKissSurge：微信小程序广告拦截
+#   - Telegram：官方 CIDR 列表
 # ============================================================
 
 name: Update Rules
 
 on:
   schedule:
-    # 每天 00:00 UTC 触发（注意：UTC，不是北京时间）
+    # 每天 UTC 00:00 自动运行（北京时间 08:00）
     - cron: "0 0 * * *"
-  workflow_dispatch:
+  workflow_dispatch:  # 支持手动触发
 
 permissions:
-  contents: write
+  contents: write  # 需要写入权限以提交更新
 
 jobs:
   update-rules:
     runs-on: ubuntu-latest
 
     steps:
-      # ------------------------------------------------------------
-      # Step 1：Checkout rule 分支
-      # ------------------------------------------------------------
+      # ============================================================
+      # Step 1：检出 rule 分支
+      # 
+      # 说明：
+      #   - 切换到 rule 分支（存放规则产物的分支）
+      #   - fetch-depth: 0 获取完整历史，便于后续 diff 统计
+      # ============================================================
       - name: Checkout rule branch
         uses: actions/checkout@v4
         with:
           ref: rule
           fetch-depth: 0
 
-      # ------------------------------------------------------------
-      # Step 2：清空旧产物（保留 .github）
-      # - 先 git rm 删除已跟踪文件（排除 .github）
-      # - 再 find 删除工作区残留（包含未跟踪文件）
-      # ------------------------------------------------------------
+      # ============================================================
+      # Step 2：清空旧产物，保留 .github 目录
+      # 
+      # 说明：
+      #   - 先用 git rm 删除已跟踪的文件（排除 .github）
+      #   - 再用 find 清理工作区中的未跟踪文件
+      #   - 确保每次都是全新生成，避免残留文件
+      # ============================================================
       - name: Purge previous files keep .github
         shell: bash
         run: |
@@ -55,10 +73,22 @@ jobs:
             -not -name '.github' \
             -exec rm -rf {} +
 
-      # ------------------------------------------------------------
-      # Step 3：proxy.domain <- gfw.txt
-      # 规则：去注释/空行、trim、域名前加点、sort -u
-      # ------------------------------------------------------------
+      # ============================================================
+      # Step 3：生成 proxy.domain（代理域名列表）
+      # 
+      # 数据源：
+      #   Loyalsoldier/surge-rules/gfw.txt
+      # 
+      # 处理逻辑：
+      #   1. 过滤注释行（以 # 开头）和空行
+      #   2. 去除首尾空白字符
+      #   3. 为域名添加点前缀（.example.com），表示后缀匹配
+      #   4. 去重并排序
+      # 
+      # 输出格式：
+      #   每行一个域名，带点前缀
+      #   示例：.google.com
+      # ============================================================
       - name: Build proxy.domain from gfw.txt
         shell: bash
         run: |
@@ -70,9 +100,22 @@ jobs:
             else print $0
           }' gfw.txt.tmp | sort -u > proxy.domain
 
-      # ------------------------------------------------------------
-      # Step 3b：proxy.rule <- Telegram CIDR
-      # ------------------------------------------------------------
+      # ============================================================
+      # Step 3b：生成 proxy.rule（代理规则列表）
+      # 
+      # 数据源：
+      #   Telegram 官方 CIDR 列表
+      # 
+      # 处理逻辑：
+      #   1. 过滤注释行和空行
+      #   2. 识别 IPv4/IPv6 CIDR
+      #   3. 转换为 Surge 规则格式：
+      #      - IPv4 → IP-CIDR,x.x.x.x/x
+      #      - IPv6 → IP-CIDR6,xxxx::/x
+      # 
+      # 输出格式：
+      #   Surge 规则格式，每行一条规则
+      # ============================================================
       - name: Build proxy.rule from Telegram CIDR
         shell: bash
         run: |
@@ -88,9 +131,18 @@ jobs:
             else print "IP-CIDR," cidr
           }' telegram.cidr.tmp > proxy.rule
 
-      # ------------------------------------------------------------
-      # Step 4：direct.domain <- direct.txt
-      # ------------------------------------------------------------
+      # ============================================================
+      # Step 4：生成 direct.domain（直连域名列表）
+      # 
+      # 数据源：
+      #   Loyalsoldier/surge-rules/direct.txt
+      # 
+      # 处理逻辑：
+      #   与 proxy.domain 相同，提取国内域名并添加点前缀
+      # 
+      # 输出格式：
+      #   每行一个域名，带点前缀
+      # ============================================================
       - name: Build direct.domain with dot prefix
         shell: bash
         run: |
@@ -102,66 +154,105 @@ jobs:
             else print $0
           }' direct.txt.tmp | sort -u > direct.domain
 
-      # ------------------------------------------------------------
-      # Step 5（重构版核心逻辑）：
-      # 生成 main.module + reject.domain + reject.rule
-      #
-      # 5.1 输入来源：
-      #   模块文件（4个）：
-      #     - blockAds.module
-      #     - blockHTTPDNS.module
-      #     - weibo.module
-      #     - 微信小程序去广告.sgmodule
-      #   额外规则文件（1个）：
-      #     - rejectAd.list
-      #
-      # 5.2 清理策略（解析时）：
-      #   - 去掉 \r
-      #   - trim 行首尾空白
-      #   - 忽略空行
-      #   - 忽略 # 或 ; 开头注释行
-      #
-      # 5.3 [Rule] + rejectAd.list：
-      #   - 合并读取规则行，并对每行执行“去掉所有空格”
-      #   - DOMAIN/DOMAIN-SUFFIX 规则 -> 抽取第2列 domain
-      #       * 后缀匹配去重 + 排序（数据量大，使用 Python 做 O(n log n) 且近似线性去重）
-      #       * 输出 reject.domain（默认加点前缀，表示 suffix 匹配；如你不想要点可再改）
-      #       * 这些域名不进入 reject.rule（满足“只保留剩余规则”）
-      #   - 其它规则 -> reject.rule：
-      #       * 若含 ,REJECT：删除从 ,REJECT 起到行尾
-      #       * 若 IP-CIDR/IP-CIDR6：末尾追加 ,no-resolve
-      #       * 去重排序输出 reject.rule
-      #
-      # 5.4 合并块：
-      #   - [URL Rewrite]/[Header Rewrite]/[Body Rewrite]/[Map Local]/[Script]
-      #   - 每块：合并后 sort -u（排序去重）
-      #
-      # 5.5 MITM：
-      #   - 只解析 hostname = %APPEND% 后的域名列表
-      #   - 仅英文逗号 , 分隔；去空白后 split
-      #   - sort -u + paste -sd, 合并成单行
-      #   - 若 HOSTS 为空：main.module 不输出 [MITM] 块
-      #
-      # 5.8 main.module 输出：
-      #   - 文件头：
-      #       #!name=General
-      #       #!category=Main
-      #   - 依次写入非空块：
-      #       [URL Rewrite]
-      #       [Header Rewrite]
-      #       [Body Rewrite]
-      #       [Map Local]
-      #       [Script]
-      #   - [MITM]：仅当 HOSTS 非空才写入
-      # ------------------------------------------------------------
+      # ============================================================
+      # Step 5：生成 main.module + reject.domain + reject.rule
+      # 
+      # 这是整个工作流的核心步骤，处理广告拦截和模块合并
+      # 
+      # ┌─────────────────────────────────────────────────────────┐
+      # │ 5.1 数据源（共 6 个上游）                                │
+      # └─────────────────────────────────────────────────────────┘
+      # 
+      # Surge 模块文件（4 个）：
+      #   - blockAds.module          通用广告拦截
+      #   - blockHTTPDNS.module      阻止 HTTP DNS 查询
+      #   - weibo.module             微博去广告
+      #   - 微信小程序去广告.sgmodule  微信小程序去广告
+      # 
+      # 规则列表文件（2 个）：
+      #   - rejectAd.list            Loon 格式的广告拦截规则
+      #   - reject.txt               纯域名列表（每行一个域名）
+      # 
+      # ┌─────────────────────────────────────────────────────────┐
+      # │ 5.2 处理流程                                             │
+      # └─────────────────────────────────────────────────────────┘
+      # 
+      # A. 预处理（所有文件统一）：
+      #    - 去除 \r（Windows 换行符）
+      #    - 去除首尾空白
+      #    - 忽略空行
+      #    - 忽略注释行（# 或 ; 开头）
+      # 
+      # B. 分类提取：
+      #    模块文件按块分类：
+      #      [Rule]          → 合并到规则池
+      #      [URL Rewrite]   → url.tmp
+      #      [Header Rewrite] → header.tmp
+      #      [Body Rewrite]  → body.tmp
+      #      [Map Local]     → local.tmp
+      #      [Script]        → script.tmp
+      #      [MITM]          → 提取 hostname = %APPEND% 后的域名
+      # 
+      # C. 规则池合并（rule_merged.tmp）：
+      #    - 模块文件的 [Rule] 块
+      #    - rejectAd.list 全文
+      #    （reject.txt 单独处理，见下方 D）
+      # 
+      # D. 域名提取与智能去重：
+      #    数据源：
+      #      - 规则池中的 DOMAIN、DOMAIN-SUFFIX 规则
+      #      - reject.txt 纯域名列表
+      #    
+      #    处理步骤：
+      #      1. 提取所有域名，去除前导点，转小写
+      #      2. 按反转标签排序（com.example.a < com.example < com.google）
+      #      3. 后缀去重：保留最短后缀，删除被覆盖的子域名
+      #         例如：example.com 存在时，自动删除 a.example.com
+      #      4. 输出时添加点前缀 → reject.domain
+      # 
+      # E. 非域名规则处理：
+      #    - 删除 ,REJECT 及其后续部分
+      #    - IP-CIDR/IP-CIDR6 规则自动追加 ,no-resolve
+      #    - 去重排序 → reject.rule
+      # 
+      # F. main.module 生成：
+      #    - 写入模块头部（#!name、#!category）
+      #    - 按顺序输出非空块：
+      #      [URL Rewrite]
+      #      [Header Rewrite]
+      #      [Body Rewrite]
+      #      [Map Local]
+      #      [Script]
+      #      [MITM]（仅当有域名时输出）
+      #    - 替换 GitHub 链接为加速地址
+      # 
+      # ┌─────────────────────────────────────────────────────────┐
+      # │ 5.3 产物说明                                             │
+      # └─────────────────────────────────────────────────────────┘
+      # 
+      # reject.domain：
+      #   - 拦截域名列表（后缀匹配）
+      #   - 已智能去重，子域名被自动合并
+      #   - 格式：每行一个域名，带点前缀
+      # 
+      # reject.rule：
+      #   - 非域名类拦截规则
+      #   - 包含：IP-CIDR、USER-AGENT、URL-REGEX 等
+      #   - 所有 IP 规则已添加 no-resolve
+      # 
+      # main.module：
+      #   - 完整的 Surge 模块文件
+      #   - 包含 URL/Header/Body 重写、本地映射、脚本等
+      #   - GitHub 链接已替换为加速地址
+      # ============================================================
       - name: Build main.module + reject.domain + reject.rule (refactored)
         shell: bash
         run: |
           set -euo pipefail
 
-          # ---------------------------
-          # 5.1 输入：模块与 rejectAd.list
-          # ---------------------------
+          # ┌─────────────────────────────────────────────────────┐
+          # │ 5.1 定义数据源 URL                                   │
+          # └─────────────────────────────────────────────────────┘
           URLS=(
             "https://raw.githubusercontent.com/fmz200/wool_scripts/main/Surge/module/blockAds.module"
             "https://raw.githubusercontent.com/fmz200/wool_scripts/main/Surge/module/blockHTTPDNS.module"
@@ -169,39 +260,47 @@ jobs:
             "https://raw.githubusercontent.com/QingRex/LoonKissSurge/main/Surge/%E5%BE%AE%E4%BF%A1%E5%B0%8F%E7%A8%8B%E5%BA%8F%E5%8E%BB%E5%B9%BF%E5%91%8A.sgmodule"
           )
           REJECT_LIST_URL="https://raw.githubusercontent.com/fmz200/wool_scripts/main/Loon/rule/rejectAd.list"
+          REJECT_DOMAIN_URL="https://raw.githubusercontent.com/Loyalsoldier/surge-rules/release/reject.txt"
 
-          # 清理旧产物
+          # 清理旧文件，创建临时目录
           rm -f main.module reject.domain reject.rule || true
           rm -rf _build || true
           mkdir -p _build
 
-          # 下载模块
+          # 下载所有模块文件
           i=0
           for u in "${URLS[@]}"; do
             i=$((i+1))
             curl -fsSL "$u" -o "_build/src_${i}.tmp"
           done
 
-          # 下载 rejectAd.list
+          # 下载规则列表文件
           curl -fsSL "$REJECT_LIST_URL" -o "_build/rejectAd.list.tmp"
+          curl -fsSL "$REJECT_DOMAIN_URL" -o "_build/reject.txt.tmp"
 
-          # ---------------------------
-          # 临时文件：块内容 + 规则源
-          # ---------------------------
-          : > _build/url.tmp
-          : > _build/header.tmp
-          : > _build/body.tmp
-          : > _build/local.tmp
-          : > _build/script.tmp
-          : > _build/mitm_host.tmp
+          # 初始化临时文件
+          : > _build/url.tmp           # [URL Rewrite] 块内容
+          : > _build/header.tmp        # [Header Rewrite] 块内容
+          : > _build/body.tmp          # [Body Rewrite] 块内容
+          : > _build/local.tmp         # [Map Local] 块内容
+          : > _build/script.tmp        # [Script] 块内容
+          : > _build/mitm_host.tmp     # [MITM] hostname 列表
+          : > _build/rule_merged.tmp   # 合并的规则（[Rule] + rejectAd.list）
+          : > _build/domain_extra.tmp  # 额外的域名列表（reject.txt）
 
-          # 规则源（合并了模块 [Rule] + rejectAd.list）
-          : > _build/rule_merged.tmp
-
-          # ---------------------------
-          # 解析模块文件：提取各块 + 合并 [Rule] 行到 rule_merged.tmp
-          # 清理策略：去 \r、trim、跳过空行/#/;注释行
-          # ---------------------------
+          # ┌─────────────────────────────────────────────────────┐
+          # │ 5.2 解析模块文件，提取各个块                         │
+          # │                                                      │
+          # │ 逻辑：                                               │
+          # │ - 识别 [块名称] 切换当前解析上下文                   │
+          # │ - [Rule] → rule_merged.tmp                          │
+          # │ - [URL Rewrite] → url.tmp                           │
+          # │ - [Header Rewrite] → header.tmp                     │
+          # │ - [Body Rewrite] → body.tmp                         │
+          # │ - [Map Local] → local.tmp                           │
+          # │ - [Script] → script.tmp                             │
+          # │ - [MITM] → 提取 hostname = %APPEND% 后的域名        │
+          # └─────────────────────────────────────────────────────┘
           awk -v url_out="_build/url.tmp" \
               -v header_out="_build/header.tmp" \
               -v body_out="_build/body.tmp" \
@@ -218,40 +317,33 @@ jobs:
             gsub(/\r/,"",line)
             line=trim(line)
 
-            # 跳过：空行、注释（# 或 ;）
+            # 跳过空行和注释
             if(line=="") next
             if(line ~ /^[#;]/) next
 
-            # 进入块：[Rule] / [URL Rewrite] / ...
-            if(line ~ /^\[[^]]+\]$/){
+            # 识别块标记：[BlockName]
+            if(line ~ /^\[[^\]]+\]$/){
               section=tolower(line)
               next
             }
 
-            # [Rule]：写入 rule_out（先不去空格，后面统一处理）
-            if(section=="[rule]"){
-              print line >> rule_out
-              next
-            }
-
-            # 其它块：写入各自 tmp
+            # 根据当前块类型分流内容
+            if(section=="[rule]"){ print line >> rule_out; next }
             if(section=="[url rewrite]"){ print line >> url_out; next }
             if(section=="[header rewrite]"){ print line >> header_out; next }
             if(section=="[body rewrite]"){ print line >> body_out; next }
             if(section=="[map local]"){ print line >> local_out; next }
             if(section=="[script]"){ print line >> script_out; next }
 
-            # [MITM]：只抽取 hostname = %APPEND% ... 的尾部域名串
+            # [MITM] 块：提取 hostname = %APPEND% 后的域名列表
             if(section=="[mitm]"){
               low=tolower(line)
               if(low ~ /^hostname[[:space:]]*=[[:space:]]*%append%/){
+                # 删除 "hostname = %APPEND%" 前缀
                 sub(/^[Hh][Oo][Ss][Tt][Nn][Aa][Mm][Ee][[:space:]]*=[[:space:]]*%[Aa][Pp][Pp][Ee][Nn][Dd]%/,"",line)
                 line=trim(line)
-
-                # 仅支持英文逗号，按你新规范
-                # 去掉所有空白后 split
+                # 去除所有空白，按逗号分割
                 gsub(/[[:space:]]+/,"",line)
-
                 n=split(line,a,",")
                 for(i=1;i<=n;i++){
                   if(a[i]!="") print a[i] >> mitm_out
@@ -264,10 +356,14 @@ jobs:
           }
           ' _build/src_*.tmp
 
-          # ---------------------------
-          # rejectAd.list：按同样清理策略读入 rule_merged.tmp
-          # 注意：你新规范要求将 rejectAd.list 也当作规则源统一处理
-          # ---------------------------
+          # ┌─────────────────────────────────────────────────────┐
+          # │ 5.3 追加 rejectAd.list 到规则池                      │
+          # │                                                      │
+          # │ rejectAd.list 是 Loon 格式的规则列表，包含：         │
+          # │ - DOMAIN/DOMAIN-SUFFIX 规则                         │
+          # │ - IP-CIDR 规则                                       │
+          # │ - USER-AGENT、URL-REGEX 等其他规则                  │
+          # └─────────────────────────────────────────────────────┘
           awk '
           function trim(s){ sub(/^[[:space:]]+/,"",s); sub(/[[:space:]]+$/,"",s); return s }
           {
@@ -279,23 +375,60 @@ jobs:
             print line
           }' _build/rejectAd.list.tmp >> _build/rule_merged.tmp
 
-          # ----------------------------------------------------------
-          # 5.3 使用 Python 处理 rule_merged.tmp：
-          #   - 去掉所有空格
-          #   - DOMAIN/DOMAIN-SUFFIX -> 抽第2列 domain -> 后缀去重排序 -> reject.domain
-          #   - 其余规则 -> 去掉 ,REJECT... -> IP-CIDR(6) 加 ,no-resolve -> 去重排序 -> reject.rule
-          #
-          # “后缀名匹配去重”的实现（高性能）：
-          #   1) 先对域名去重
-          #   2) 将域名按“反转标签串”排序：
-          #        example.com -> com.example
-          #        a.example.com -> com.example.a
-          #   3) 遍历时只保留“最短后缀”，丢弃被已保留后缀覆盖的更长子域名
-          # ----------------------------------------------------------
+          # ┌─────────────────────────────────────────────────────┐
+          # │ 5.4 处理 reject.txt（纯域名列表）                    │
+          # │                                                      │
+          # │ reject.txt 格式：                                    │
+          # │   .example.com                                       │
+          # │   .ad-tracker.net                                    │
+          # │                                                      │
+          # │ 处理：去除前导点，保存到 domain_extra.tmp            │
+          # └─────────────────────────────────────────────────────┘
+          awk '
+          function trim(s){ sub(/^[[:space:]]+/,"",s); sub(/[[:space:]]+$/,"",s); return s }
+          {
+            line=$0
+            gsub(/\r/,"",line)
+            line=trim(line)
+            if(line=="") next
+            if(line ~ /^[#;]/) next
+            
+            # 去除前导点
+            if(substr(line,1,1)==".") line=substr(line,2)
+            if(line!="") print line
+          }' _build/reject.txt.tmp > _build/domain_extra.tmp
+
+          # ┌─────────────────────────────────────────────────────┐
+          # │ 5.5 Python 脚本：规则分类与智能去重                  │
+          # │                                                      │
+          # │ 输入：                                               │
+          # │   - rule_merged.tmp（模块 [Rule] + rejectAd.list）  │
+          # │   - domain_extra.tmp（reject.txt 域名列表）         │
+          # │                                                      │
+          # │ 输出：                                               │
+          # │   - reject.domain（域名列表，后缀去重）             │
+          # │   - reject.rule（非域名规则，标准化）               │
+          # │                                                      │
+          # │ 域名去重算法（后缀匹配）：                           │
+          # │   1. 提取所有域名，去重                              │
+          # │   2. 按反转标签排序（com.example < com.example.a）  │
+          # │   3. 线性扫描：                                      │
+          # │      - 保留最短后缀                                  │
+          # │      - 删除被覆盖的子域名                            │
+          # │   示例：                                             │
+          # │      输入：example.com, a.example.com, b.example.com│
+          # │      输出：example.com（已覆盖所有子域名）          │
+          # │                                                      │
+          # │ 规则标准化：                                         │
+          # │   - 删除 ,REJECT 及其后续部分                       │
+          # │   - IP-CIDR/IP-CIDR6 自动追加 ,no-resolve           │
+          # │   - 去重排序                                         │
+          # └─────────────────────────────────────────────────────┘
           python3 - << 'PY'
           import re
 
           rule_path = "_build/rule_merged.tmp"
+          domain_extra_path = "_build/domain_extra.tmp"
           out_domain = "reject.domain"
           out_rule = "reject.rule"
 
@@ -303,10 +436,12 @@ jobs:
           rules = []
 
           def normalize_line(s: str) -> str:
-            # 去掉所有空白字符（空格、tab等）
+            """去除所有空白字符"""
             return re.sub(r"\s+", "", s)
 
-          # 读入规则源
+          # ┌───────────────────────────────────────────────────┐
+          # │ 步骤 1：读取规则池，分类提取域名和其他规则         │
+          # └───────────────────────────────────────────────────┘
           with open(rule_path, "r", encoding="utf-8", errors="ignore") as f:
             for raw in f:
               line = raw.strip("\n").replace("\r", "").strip()
@@ -315,23 +450,23 @@ jobs:
               if line.startswith("#") or line.startswith(";"):
                 continue
 
+              # 去除所有空格
               line = normalize_line(line)
               if not line:
                 continue
 
-              # 域名类：DOMAIN / DOMAIN-SUFFIX
+              # 提取域名类规则（DOMAIN, DOMAIN-SUFFIX）
               if line.startswith("DOMAIN,") or line.startswith("DOMAIN-SUFFIX,"):
                 parts = line.split(",")
                 if len(parts) >= 2 and parts[1]:
                   d = parts[1].lower()
-                  # 去掉可能已有的前导点
-                  d = d.lstrip(".")
+                  d = d.lstrip(".")  # 去除前导点
                   if d:
                     domains.append(d)
-                # 域名类只进 reject.domain，不进 reject.rule
+                # 域名类规则不进入 reject.rule
                 continue
 
-              # 剩余规则：去掉 ,REJECT 及其后续
+              # 非域名规则：删除 ,REJECT 及其后续
               if ",REJECT" in line:
                 line = line.split(",REJECT", 1)[0]
 
@@ -343,15 +478,55 @@ jobs:
               if line:
                 rules.append(line)
 
-          # ---------- reject.domain：后缀匹配去重 + 排序 ----------
-          # 先去重
+          # ┌───────────────────────────────────────────────────┐
+          # │ 步骤 2：读取额外域名列表（reject.txt）             │
+          # └───────────────────────────────────────────────────┘
+          try:
+            with open(domain_extra_path, "r", encoding="utf-8", errors="ignore") as f:
+              for raw in f:
+                line = raw.strip("\n").replace("\r", "").strip()
+                if line:
+                  domains.append(line.lower())
+          except FileNotFoundError:
+            pass
+
+          # ┌───────────────────────────────────────────────────┐
+          # │ 步骤 3：域名后缀匹配去重                           │
+          # │                                                    │
+          # │ 算法说明：                                         │
+          # │   对于域名列表：                                   │
+          # │     example.com                                    │
+          # │     a.example.com                                  │
+          # │     b.example.com                                  │
+          # │     google.com                                     │
+          # │                                                    │
+          # │   反转标签排序后：                                 │
+          # │     com.example       (example.com)                │
+          # │     com.example.a     (a.example.com)              │
+          # │     com.example.b     (b.example.com)              │
+          # │     com.google        (google.com)                 │
+          # │                                                    │
+          # │   线性扫描，保留最短后缀：                         │
+          # │     ✓ example.com (保留)                           │
+          # │     ✗ a.example.com (被 example.com 覆盖)         │
+          # │     ✗ b.example.com (被 example.com 覆盖)         │
+          # │     ✓ google.com (保留)                            │
+          # │                                                    │
+          # │   最终输出：                                       │
+          # │     example.com                                    │
+          # │     google.com                                     │
+          # └───────────────────────────────────────────────────┘
+          
+          # 去重
           uniq = sorted(set(domains))
+          
           # 按反转标签排序
           def rev_key(d: str):
             return ".".join(reversed(d.split(".")))
 
           uniq.sort(key=rev_key)
 
+          # 后缀去重
           kept = []
           last_rev = None
           last_dom = None
@@ -359,24 +534,21 @@ jobs:
           for d in uniq:
             rk = rev_key(d)
             if last_rev is not None:
-              # 如果当前反转串以“已保留反转串 + '.'”开头，说明 d 是 last_dom 的子域名 -> 被覆盖，丢弃
-              # 例如：
-              #   last_dom = example.com -> last_rev = com.example
-              #   d = a.example.com -> rk = com.example.a  (以 com.example. 开头) => 丢弃
+              # 如果当前域名是上一个域名的子域名，则跳过
               if rk == last_rev or rk.startswith(last_rev + "."):
                 continue
             kept.append(d)
             last_rev = rk
             last_dom = d
 
-          # 输出：按你之前体系，默认加点前缀（表示 suffix 匹配）
-          # 若你希望不加点，把 "."+d 改成 d 即可。
+          # 输出 reject.domain（添加点前缀表示后缀匹配）
           with open(out_domain, "w", encoding="utf-8") as f:
             for d in kept:
               f.write("." + d + "\n")
 
-          # ---------- reject.rule：去重排序 ----------
-          # 直接 set 去重，再排序输出
+          # ┌───────────────────────────────────────────────────┐
+          # │ 步骤 4：输出 reject.rule（去重排序）              │
+          # └───────────────────────────────────────────────────┘
           out_rules = sorted(set(rules))
           with open(out_rule, "w", encoding="utf-8") as f:
             for r in out_rules:
@@ -384,31 +556,55 @@ jobs:
 
           PY
 
-          # ----------------------------------------------------------
-          # 5.4 合并块：每块 sort -u 去重排序
-          # ----------------------------------------------------------
+          # ┌─────────────────────────────────────────────────────┐
+          # │ 5.6 合并各类重写块，去重排序                         │
+          # └─────────────────────────────────────────────────────┘
           sort -u _build/url.tmp    -o _build/url.clean    || true
           sort -u _build/header.tmp -o _build/header.clean || true
           sort -u _build/body.tmp   -o _build/body.clean   || true
           sort -u _build/local.tmp  -o _build/local.clean  || true
           sort -u _build/script.tmp -o _build/script.clean || true
 
-          # ----------------------------------------------------------
-          # 5.5 MITM：hostname = %APPEND% 后域名集合 sort -u + join
-          # 若为空：不输出 [MITM] 块（按你新规范）
-          # ----------------------------------------------------------
+          # ┌─────────────────────────────────────────────────────┐
+          # │ 5.7 处理 MITM hostname 列表                          │
+          # │                                                      │
+          # │ - 去重排序                                           │
+          # │ - 合并为逗号分隔的单行                               │
+          # │ - 若为空则不输出 [MITM] 块                          │
+          # └─────────────────────────────────────────────────────┘
           HOSTS=""
           if [ -s _build/mitm_host.tmp ]; then
             sort -u _build/mitm_host.tmp > _build/mitm_host.clean
             HOSTS="$(paste -sd, _build/mitm_host.clean)"
           fi
 
-          # ----------------------------------------------------------
-          # 5.8 生成 main.module
-          # - 写入头部 metadata
-          # - 按固定块顺序输出非空块
-          # - [MITM]：仅当 HOSTS 非空时输出
-          # ----------------------------------------------------------
+          # ┌─────────────────────────────────────────────────────┐
+          # │ 5.8 生成 main.module                                 │
+          # │                                                      │
+          # │ 输出结构：                                           │
+          # │   #!name=General                                     │
+          # │   #!category=Main                                    │
+          # │                                                      │
+          # │   [URL Rewrite]                                      │
+          # │   （URL 重写规则）                                   │
+          # │                                                      │
+          # │   [Header Rewrite]                                   │
+          # │   （Header 重写规则）                                │
+          # │                                                      │
+          # │   [Body Rewrite]                                     │
+          # │   （Body 重写规则）                                  │
+          # │                                                      │
+          # │   [Map Local]                                        │
+          # │   （本地映射规则）                                   │
+          # │                                                      │
+          # │   [Script]                                           │
+          # │   （脚本配置）                                       │
+          # │                                                      │
+          # │   [MITM]                                             │
+          # │   hostname = %APPEND% domain1.com,domain2.com        │
+          # │                                                      │
+          # │ 注意：仅输出非空块                                   │
+          # └─────────────────────────────────────────────────────┘
           {
             echo "#!name=General"
             echo "#!category=Main"
@@ -444,7 +640,7 @@ jobs:
               echo
             fi
 
-            # 若 HOSTS 为空，则不输出 MITM 块（按新规范）
+            # 仅当有域名时才输出 [MITM] 块
             if [ -n "$HOSTS" ]; then
               echo "[MITM]"
               echo "hostname = %APPEND% $HOSTS"
@@ -455,16 +651,37 @@ jobs:
           # 清理临时目录
           rm -rf _build
 
-          # main.module 生成完成后，替换为加速地址
+          # ┌─────────────────────────────────────────────────────┐
+          # │ 5.9 替换 GitHub 链接为加速地址                       │
+          # │                                                      │
+          # │ 将 main.module 中的 GitHub 链接替换为加速服务：      │
+          # │   raw.githubusercontent.com → a.aff.al/raw...       │
+          # │   github.com → a.aff.al/github.com                   │
+          # │                                                      │
+          # │ 用途：提高国内用户访问 GitHub 资源的速度             │
+          # └─────────────────────────────────────────────────────┘
           sed -i \
             -e 's|https://raw.githubusercontent.com/|https://a.aff.al/raw.githubusercontent.com/|g' \
             -e 's|https://github.com/|https://a.aff.al/github.com/|g' \
             main.module
 
-      # ------------------------------------------------------------
-      # Step 6：提交并推送
-      # - commit message 第二段附带 numstat 便于审计
-      # ------------------------------------------------------------
+      # ============================================================
+      # Step 6：提交更新并推送到 rule 分支
+      # 
+      # 说明：
+      #   - 清理所有 .tmp 临时文件
+      #   - 配置 Git 用户信息（GitHub Actions 机器人）
+      #   - 提交所有更改
+      #   - commit message 包含两部分：
+      #     * 第一行：简单的 "Update rules"
+      #     * 第二段：numstat 统计（文件名 +新增行/-删除行）
+      #   - 推送到 rule 分支
+      # 
+      # numstat 示例：
+      #   proxy.domain +123/-456
+      #   reject.domain +789/-012
+      #   main.module +345/-678
+      # ============================================================
       - name: Commit and push with detailed changes
         shell: bash
         run: |
