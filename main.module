@@ -1543,7 +1543,6 @@ http-response-jq http:\/\/dili.sqcosmos.com\/jiekou\/mains\/p\d+.html '.album |=
 ^https?:\/\/y\.gtimg\.cn\/music\/common\/upload\/targeted_ads data-type=tiny-gif status-code=200
 ^https?:\/\/yghsh\.cebbank\.com\/static\/picture\/.*.jpg data-type=text data=" " status-code=200
 ^https?:\/\/yun\.tuitiger\.com\/mami-media data-type=text data=" " status-code=200
-^https?:\/\/yunbusiness\.ccb\.com\/basic_service\/txCtrl\?txcode=A3341AB05 data-type=file data="https://a.aff.al/raw.githubusercontent.com/fmz200/wool_scripts/main/Scripts/ccbLife/A3341AB05.json" status-code=200 header="Content-Type:application/json"
 ^https?:\/\/yunbusiness\.ccb\.com\/clp_service\/txCtrl\?txcode=A3341A(002|006|009|119|120) data-type=text data=" " status-code=200
 ^https?:\/\/yunbusiness\.ccb\.com\/clp_service\/txCtrl\?txcode=A3341C147 data-type=text data=" " status-code=200
 ^https?:\/\/z\.onewo\.com\/passer\/api\/ads\/v1\/8\/list data-type=text data=" " status-code=200
