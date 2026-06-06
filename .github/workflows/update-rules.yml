@@ -655,14 +655,14 @@ jobs:
           # │ 5.9 替换 GitHub 链接为加速地址                       │
           # │                                                      │
           # │ 将 main.module 中的 GitHub 链接替换为加速服务：      │
-          # │   raw.githubusercontent.com → a.aff.al/raw...       │
-          # │   github.com → a.aff.al/github.com                   │
+          # │   raw.githubusercontent.com → aff.al/raw...       │
+          # │   github.com → aff.al/github.com                   │
           # │                                                      │
           # │ 用途：提高国内用户访问 GitHub 资源的速度             │
           # └─────────────────────────────────────────────────────┘
           sed -i \
-            -e 's|https://raw.githubusercontent.com/|https://a.aff.al/raw.githubusercontent.com/|g' \
-            -e 's|https://github.com/|https://a.aff.al/github.com/|g' \
+            -e 's|https://raw.githubusercontent.com/|https://aff.al/raw.githubusercontent.com/|g' \
+            -e 's|https://github.com/|https://aff.al/github.com/|g' \
             main.module
 
       # ============================================================
