@@ -23408,6 +23408,7 @@
 .cl2-cdn.origin-apple.com.akadns.net
 .cl2-cn.apple.com
 .cl2.apple.com
+.cl2.apple.com.edgekey.net.globalredir.akadns.net
 .cl2009.com
 .cl3-cdn.origin-apple.com.akadns.net
 .cl3.apple.com
@@ -39953,6 +39954,7 @@
 .gsnhcg.com
 .gsnytz.com
 .gsp10-ssl-cn.ls.apple.com
+.gsp11-cn.ls.apple.com
 .gsp12-cn.ls.apple.com
 .gsp13-cn.ls.apple.com
 .gsp4-cn.ls.apple.com
@@ -50604,9 +50606,7 @@
 .iclickstatic.com
 .icliexpo.com
 .icljt.com
-.icloud-cdn.icloud.com.akadns.net
 .icloud-power.com
-.icloud.cdn-apple.com
 .icloudcity.com
 .icloudgslb.com
 .icloudnative.io
@@ -71423,11 +71423,9 @@
 .ocn187.com
 .ocpuritech.com
 .ocsjs.com
-.ocsp-lb.apple.com.akadns.net
 .ocsp.apple.com
 .ocsp.pki.goog
 .ocsp.us.cdnetworks.com
-.ocsp2-lb.apple.com.akadns.net
 .ocsp2.apple.com
 .ocssaas.com
 .oct-asia.com
@@ -72677,7 +72675,6 @@
 .panbaidu.net
 .panbrake.com
 .pancake.apple.com
-.pancake.cdn-apple.com.akadns.net
 .panchinasports.com
 .panchip.com
 .panchuang.net
@@ -78152,7 +78149,6 @@
 .reseetech.com
 .resemblancey.com
 .resemi.com
-.reserve-prime.apple.com
 .reservehemu.com
 .resheji.com
 .resistor.today
